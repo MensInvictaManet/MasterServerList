@@ -1,5 +1,35 @@
 #include "ArcadiaEngine.h"
 
+GUIListBox* serverListBox = nullptr;
+
+void AddServer(const char* serverName, int playerMax, const char* ipAddress, bool favorited)
+{
+	GUIObjectNode* entryNode = new GUIObjectNode;
+
+	GUILabel* serverNameLabel = GUILabel::CreateLabel(serverName, 10, 8, 100, 22);
+	serverNameLabel->SetFont(fontManager.GetFont("Arial"));
+	serverNameLabel->SetJustification(GUILabel::JUSTIFY_LEFT);
+	entryNode->AddChild(serverNameLabel);
+
+	char playersString[16];
+	sprintf_s(playersString, 16, "[0 / %d]", playerMax);
+	GUILabel* serverPlayersLabel = GUILabel::CreateLabel(playersString, 340, 8, 60, 22);
+	serverPlayersLabel->SetFont(fontManager.GetFont("Arial"));
+	serverPlayersLabel->SetJustification(GUILabel::JUSTIFY_LEFT);
+	entryNode->AddChild(serverPlayersLabel);
+
+	GUILabel* serverIPLabel = GUILabel::CreateLabel(ipAddress, 580, 8, 100, 22);
+	serverIPLabel->SetFont(fontManager.GetFont("Arial"));
+	serverIPLabel->SetJustification(GUILabel::JUSTIFY_CENTER);
+	entryNode->AddChild(serverIPLabel);
+
+	GUICheckbox* favoritedCheckbox = GUICheckbox::CreateTemplatedCheckbox("Standard", 760, 4, 22, 22);
+	favoritedCheckbox->SetChecked(favorited);
+	entryNode->AddChild(favoritedCheckbox);
+
+	serverListBox->AddItem(entryNode);
+}
+
 void CreateMenuUI()
 {
 	//  Load the fonts for the UI
@@ -8,8 +38,11 @@ void CreateMenuUI()
 	fontManager.LoadFont("Arial-12-White");
 
 	//  Load the listbox that will hold all of the current servers connected to the MSL
-	auto listbox = GUIListBox::CreateTemplatedListBox("Standard", 6, 120, 1012, 642, 980, 6, 32, 32, 32, 32, 32, 22, 2);
-	guiManager.GetBaseNode()->AddChild(listbox);
+	serverListBox = GUIListBox::CreateTemplatedListBox("Standard", 6, 120, 788, 642, 756, 6, 32, 32, 32, 32, 32, 22, 2);
+	guiManager.GetBaseNode()->AddChild(serverListBox);
+
+	AddServer("Test Server Name", 10, "127.0.0.1", false);
+	AddServer("/chicken Forever", 32, "192.168.0.1", true);
 }
 
 void RenderScreen()

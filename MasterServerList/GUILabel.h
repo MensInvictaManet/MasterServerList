@@ -6,13 +6,16 @@
 class GUILabel : public GUIObjectNode
 {
 public:
+	enum Justifications { JUSTIFY_LEFT = 0, JUSTIFY_RIGHT, JUSTIFY_CENTER, JUSTIFICATION_COUNT };
+
 	static GUILabel* CreateLabel(const char* text, int x = 0, int y = 0, int w = 0, int h = 0);
 
-	explicit GUILabel(const char* text);
+	explicit GUILabel(const char* text = "");
 	virtual ~GUILabel();
 
 	void SetFont(const Font* font) { m_Font = font; }
 	void SetText(const std::string text) { m_Text = text; }
+	void SetJustification(int justify) { m_Justification = justify; }
 
 	void Input(int xOffset = 0, int yOffset = 0) override {};
 	void Render(int xOffset = 0, int yOffset = 0) override;
@@ -20,6 +23,7 @@ public:
 private:
 	const Font* m_Font;
 	std::string m_Text;
+	int m_Justification;
 };
 
 inline GUILabel* GUILabel::CreateLabel(const char* text, int x, int y, int w, int h)
@@ -34,7 +38,8 @@ inline GUILabel* GUILabel::CreateLabel(const char* text, int x, int y, int w, in
 
 inline GUILabel::GUILabel(const char* text) :
 	m_Font(nullptr),
-	m_Text("")
+	m_Text(text),
+	m_Justification(JUSTIFY_LEFT)
 {
 
 }
@@ -42,21 +47,23 @@ inline GUILabel::GUILabel(const char* text) :
 
 inline GUILabel::~GUILabel()
 {
-	
+
 }
 
 inline void GUILabel::Render(int xOffset, int yOffset)
 {
+	auto x = m_X + xOffset;
+	auto y = m_Y + yOffset;
+
 	//  Render the object if we're able
 	if (!m_SetToDestroy && m_Visible && (m_Font != nullptr && !m_Text.empty()) && m_Width > 0 && m_Height > 0)
 	{
-		auto x = m_X + xOffset;
-		auto y = m_Y + yOffset;
-
 		//  Render the font the same way regardless of templating
-		m_Font->RenderText(m_Text.c_str(), x + m_Width / 2, y + m_Height / 2, true, true);
+		if (m_Justification == JUSTIFY_CENTER)		m_Font->RenderText(m_Text.c_str(), x - m_Font->GetTextWidth(m_Text.c_str()) / 2, y);
+		else if (m_Justification == JUSTIFY_LEFT)	m_Font->RenderText(m_Text.c_str(), x, y);
+		else if (m_Justification == JUSTIFY_RIGHT)	m_Font->RenderText(m_Text.c_str(), x + m_Width - m_Font->GetTextWidth(m_Text.c_str()), y);
 	}
 
 	//  Pass the render call to all children
-	for (auto iter = m_Children.begin(); iter != m_Children.end(); ++iter) (*iter)->Render(xOffset + m_X, yOffset + m_Y);
+	for (auto iter = m_Children.begin(); iter != m_Children.end(); ++iter) (*iter)->Render(x, y);
 }

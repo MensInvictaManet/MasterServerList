@@ -200,11 +200,11 @@ inline void GUICheckbox::ToggleCheck()
 inline void GUICheckbox::Check()
 {
 	m_Checked = true;
-	m_CheckCallback(this);
+	if (m_CheckCallback != nullptr) m_CheckCallback(this);
 }
 
 inline void GUICheckbox::Uncheck()
 {
 	m_Checked = false;
-	m_CheckCallback(this);
+	if (m_CheckCallback != nullptr) m_CheckCallback(this);
 }
