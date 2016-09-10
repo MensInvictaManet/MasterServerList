@@ -103,10 +103,10 @@ inline void GUIObjectNode::SetToDestroy()
 
 inline void GUIObjectNode::Destroy()
 {
-	m_Parent->RemoveChild(this);
+	if (m_Parent != nullptr) m_Parent->RemoveChild(this);
 
 	//  Pass the destroy call to all children
-	for (auto iter = m_Children.begin(); iter != m_Children.end(); ++iter) (*iter)->Destroy();
+	while (!m_Children.empty()) (*m_Children.begin())->Destroy();
 }
 
 inline void GUIObjectNode::AddChild(GUIObjectNode* child)

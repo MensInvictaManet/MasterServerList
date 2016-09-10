@@ -21,7 +21,7 @@ public:
 	bool tcpconnect(const char* address, int port, int mode);
 	bool tcplisten(int port, int max, int mode);
 	Socket* tcpaccept(int mode);
-	char* tcpip();
+	std::string tcpip();
 	void setnagle(bool enabled);
 	bool tcpconnected();
 	int setsync(int mode);
@@ -129,12 +129,14 @@ inline Socket* Socket::tcpaccept(int mode)
 	return 0;
 }
 
-inline char* Socket::tcpip()
+inline std::string Socket::tcpip()
 {
-	return "";
-	////if (sockid<0) return 0;
-	////if (getpeername(sockid, (SOCKADDR *)&SenderAddr, &SenderAddrSize) == SOCKET_ERROR) return 0;
-	////return inet_ntoa(SenderAddr.sin_addr);
+	if (sockid < 0) return nullptr;
+	if (getpeername(sockid, (SOCKADDR *)&SenderAddr, &SenderAddrSize) == SOCKET_ERROR) return nullptr;
+
+	char ipAddress[32];
+	inet_ntop(AF_INET, &SenderAddr.sin_addr, ipAddress, INET_ADDRSTRLEN);
+	return std::string(ipAddress);
 }
 
 inline void Socket::setnagle(bool enabled)

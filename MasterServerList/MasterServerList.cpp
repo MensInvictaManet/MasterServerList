@@ -1,36 +1,48 @@
 #include "ArcadiaEngine.h"
 
+#include "MasterServer.h"
+
+ServerList MSL;
 GUIListBox* serverListBox = nullptr;
+GUIListBox* clientListBox = nullptr;
 
 void AddServer(const char* serverName, int playerMax, const char* ipAddress, bool favorited)
 {
 	GUIObjectNode* entryNode = new GUIObjectNode;
 
-	GUILabel* serverNameLabel = GUILabel::CreateLabel(serverName, 10, 8, 100, 22);
-	serverNameLabel->SetFont(fontManager.GetFont("Arial"));
+	GUILabel* serverNameLabel = GUILabel::CreateLabel(fontManager.GetFont("Arial"), serverName, 10, 8, 100, 22);
 	serverNameLabel->SetJustification(GUILabel::JUSTIFY_LEFT);
 	entryNode->AddChild(serverNameLabel);
 
 	char playersString[16];
 	sprintf_s(playersString, 16, "[0 / %d]", playerMax);
-	GUILabel* serverPlayersLabel = GUILabel::CreateLabel(playersString, 340, 8, 60, 22);
-	serverPlayersLabel->SetFont(fontManager.GetFont("Arial"));
+	GUILabel* serverPlayersLabel = GUILabel::CreateLabel(fontManager.GetFont("Arial"), playersString, 340, 8, 60, 22);
 	serverPlayersLabel->SetJustification(GUILabel::JUSTIFY_LEFT);
 	entryNode->AddChild(serverPlayersLabel);
 
-	GUILabel* serverIPLabel = GUILabel::CreateLabel(ipAddress, 580, 8, 100, 22);
-	serverIPLabel->SetFont(fontManager.GetFont("Arial"));
+	GUILabel* serverIPLabel = GUILabel::CreateLabel(fontManager.GetFont("Arial"), ipAddress, 500, 8, 100, 22);
 	serverIPLabel->SetJustification(GUILabel::JUSTIFY_CENTER);
 	entryNode->AddChild(serverIPLabel);
 
-	GUICheckbox* favoritedCheckbox = GUICheckbox::CreateTemplatedCheckbox("Standard", 760, 4, 22, 22);
+	GUICheckbox* favoritedCheckbox = GUICheckbox::CreateTemplatedCheckbox("Standard", 630, 4, 22, 22);
 	favoritedCheckbox->SetChecked(favorited);
 	entryNode->AddChild(favoritedCheckbox);
 
 	serverListBox->AddItem(entryNode);
 }
 
-void CreateMenuUI()
+void AddClient(const char* ipAddress)
+{
+	GUIObjectNode* entryNode = new GUIObjectNode;
+
+	GUILabel* clientIPLabel = GUILabel::CreateLabel(fontManager.GetFont("Arial"), ipAddress, 10, 8, 100, 22);
+	clientIPLabel->SetJustification(GUILabel::JUSTIFY_LEFT);
+	entryNode->AddChild(clientIPLabel);
+	
+	clientListBox->AddItem(entryNode);
+}
+
+void CreateProgramData()
 {
 	//  Load the fonts for the UI
 	fontManager.SetFontFolder("Fonts/");
@@ -38,11 +50,38 @@ void CreateMenuUI()
 	fontManager.LoadFont("Arial-12-White");
 
 	//  Load the listbox that will hold all of the current servers connected to the MSL
-	serverListBox = GUIListBox::CreateTemplatedListBox("Standard", 6, 120, 788, 642, 756, 6, 32, 32, 32, 32, 32, 22, 2);
+	guiManager.GetBaseNode()->AddChild(GUILabel::CreateLabel(fontManager.GetFont("Arial"), "Server List:", 6, 52, 100, 22));
+	serverListBox = GUIListBox::CreateTemplatedListBox("Standard", 6, 70, 660, 526, 756, 6, 32, 32, 32, 32, 32, 22, 2);
 	guiManager.GetBaseNode()->AddChild(serverListBox);
+
+	//  Load the listbox that will hold all of the current servers connected to the MSL
+	guiManager.GetBaseNode()->AddChild(GUILabel::CreateLabel(fontManager.GetFont("Arial"), "Client List:", 674, 52, 100, 22));
+	clientListBox = GUIListBox::CreateTemplatedListBox("Standard", 674, 70, 120, 526, 756, 6, 32, 32, 32, 32, 32, 22, 2);
+	guiManager.GetBaseNode()->AddChild(clientListBox);
 
 	AddServer("Test Server Name", 10, "127.0.0.1", false);
 	AddServer("/chicken Forever", 32, "192.168.0.1", true);
+	AddClient("127.0.0.1");
+	//serverListBox->ClearItems();
+}
+
+void UpdateMSLDisplay()
+{
+	if (!MSL.GetChangedThisFrame()) return;
+
+	//  Clear and repopulate the server list
+	serverListBox->ClearItems();
+	for (unsigned int i = 0, serverCount = MSL.GetServerCount(); i < serverCount; ++i)
+	{
+		AddServer(MSL.GetServerName(i).c_str(), 0, MSL.GetServerIP(i).c_str(), false);
+	}
+
+	//  Clear and repopulate the client list
+	clientListBox->ClearItems();
+	for (unsigned int i = 0, clientCount = MSL.GetClientCount(); i < clientCount; ++i)
+	{
+		AddClient(MSL.GetClientIP(i).c_str());
+	}
 }
 
 void RenderScreen()
@@ -126,7 +165,8 @@ void PrimaryLoop()
 		guiManager.Input();
 
 		//  Update
-		//  ?
+		MSL.MainProcess();
+		UpdateMSLDisplay();
 
 		//  Render
 		RenderScreen();
@@ -146,13 +186,20 @@ int main(int argc, char* args[])
 		return 1;
 	}
 
+	if (!MSL.Initialize())
+	{
+		ShutdownEngine();
+		return 2;
+	}
+
 	//  Create test data for different systems to ensure they work as they should
-	CreateMenuUI();
+	CreateProgramData();
 
 	//  Begin the primary loop, and continue until it exits
 	PrimaryLoop();
 
 	//  Free resources and close SDL before exiting
+	MSL.Shutdown();
 	ShutdownEngine();
 	return 0;
 }

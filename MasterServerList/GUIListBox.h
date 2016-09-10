@@ -25,6 +25,7 @@ public:
 	void Render(int xOffset = 0, int yOffset = 0) override;
 
 	inline void AddItem(GUIObjectNode* item) { m_ItemList.push_back(item); UpdateMover(); }
+	inline void ClearItems() { for (auto iter = m_ItemList.begin(); iter != m_ItemList.end(); ++iter) { guiManager.DestroyNode((*iter)); } m_ItemList.clear(); }
 
 private:
 	GUIListBoxCallback	m_ItemClickCallback;

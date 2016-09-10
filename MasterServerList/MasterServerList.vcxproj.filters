@@ -332,6 +332,9 @@
     <ClInclude Include="ArcadiaEngine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="MasterServer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="SDL2\SDL_config.h.cmake">

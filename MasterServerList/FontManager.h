@@ -126,7 +126,7 @@ inline unsigned int Font::GetCharacterCountBeforePassingWidth(const char* text, 
 		auto new_return_value = new_string.find_last_of(" ");
 		if ((new_return_value != std::string::npos) && (new_return_value + 1 < new_string.size()))
 		{
-			character_count = new_return_value + 1;
+			character_count = (unsigned int)(new_return_value + 1);
 		}
 	}
 	return character_count;

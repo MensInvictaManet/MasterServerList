@@ -124,6 +124,7 @@
     <ClInclude Include="GUIMoveable.h" />
     <ClInclude Include="GUIObjectNode.h" />
     <ClInclude Include="InputManager.h" />
+    <ClInclude Include="MasterServer.h" />
     <ClInclude Include="SDL2\begin_code.h" />
     <ClInclude Include="SDL2\close_code.h" />
     <ClInclude Include="SDL2\SDL.h" />

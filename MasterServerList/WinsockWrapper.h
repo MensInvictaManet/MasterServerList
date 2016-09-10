@@ -47,6 +47,7 @@ public:
 	int GetSocketID(int socketID);
 
 	//  IP Information
+	std::string GetIP(int socketID);
 	static char* GetLastInIP();
 	static double GetLastInPort();
 
@@ -349,6 +350,12 @@ inline int WinsockWrapper::GetSocketID(int socketID)
 {
 	auto socket = m_SocketList[socketID];
 	return ((socket == nullptr) ? -1 : int(socket->sockid));
+}
+
+inline std::string WinsockWrapper::GetIP(int socketID)
+{
+	auto socket = m_SocketList[socketID];
+	return socket->tcpip();
 }
 
 inline char* WinsockWrapper::GetLastInIP()

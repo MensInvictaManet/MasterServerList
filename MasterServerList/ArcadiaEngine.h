@@ -154,6 +154,9 @@ bool InitializeEngine()
 
 	SDL_SetRenderDrawColor(windowManager.GetRenderer(windowIndex), 0xFF, 0xFF, 0xFF, 0xFF);
 
+	//  Initialize Winsock
+	winsockWrapper.WinsockInitialize();
+
 	//  Initialize OpenGL
 	if (!InitializeOpenGL())
 	{
@@ -175,12 +178,14 @@ bool InitializeEngine()
 
 void ShutdownEngine()
 {
+
 	//  Quit all SDL sub-systems
 #if USING_SDL_IMAGE
 	IMG_Quit();
 #endif
 
 	//  Shutdown the manager classes that need it
+	winsockWrapper.WinsockShutdown();
 	textureManager.Shutdown();
 	windowManager.Shutdown();
 
