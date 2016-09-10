@@ -14,17 +14,17 @@
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
     <Filter Include="Header Files\GUI Object Types">
-      <UniqueIdentifier>{d541cfe8-2866-4806-84b0-5b887e4cb07e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\SDL2">
-      <UniqueIdentifier>{989e646c-9999-413e-aa8f-e375742e43bb}</UniqueIdentifier>
+      <UniqueIdentifier>{4b947876-7654-4ea9-86ee-4c7fdd7dd735}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\WinsockWrapper">
-      <UniqueIdentifier>{fb613417-b9df-48a2-831f-dd31b6a410bb}</UniqueIdentifier>
+      <UniqueIdentifier>{98302d07-8ba5-41d2-ac91-57493a00e2fa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\SDL2">
+      <UniqueIdentifier>{75e79802-f5f5-4955-8d4f-24f5b556a297}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="MasterServerList.cpp">
+    <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -47,14 +47,17 @@
     <ClInclude Include="Socket.h">
       <Filter>Header Files\WinsockWrapper</Filter>
     </ClInclude>
-    <ClInclude Include="SocketBuffer.h">
-      <Filter>Header Files\WinsockWrapper</Filter>
-    </ClInclude>
     <ClInclude Include="SimpleMD5.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MasterServer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="InputManager.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GUIEditBox.h">
+      <Filter>Header Files\GUI Object Types</Filter>
     </ClInclude>
     <ClInclude Include="GUILabel.h">
       <Filter>Header Files\GUI Object Types</Filter>
@@ -74,14 +77,26 @@
     <ClInclude Include="GUICheckbox.h">
       <Filter>Header Files\GUI Object Types</Filter>
     </ClInclude>
-    <ClInclude Include="GUIEditBox.h">
-      <Filter>Header Files\GUI Object Types</Filter>
-    </ClInclude>
     <ClInclude Include="GUIManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ArcadiaEngine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="FontManager.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SDL2\SDL_atomic.h">
+      <Filter>Header Files\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="SDL2\SDL_audio.h">
+      <Filter>Header Files\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="SDL2\SDL_bits.h">
+      <Filter>Header Files\SDL2</Filter>
+    </ClInclude>
+    <ClInclude Include="SDL2\SDL_blendmode.h">
+      <Filter>Header Files\SDL2</Filter>
     </ClInclude>
     <ClInclude Include="SDL2\SDL_clipboard.h">
       <Filter>Header Files\SDL2</Filter>
@@ -317,48 +332,5 @@
     <ClInclude Include="SDL2\SDL_assert.h">
       <Filter>Header Files\SDL2</Filter>
     </ClInclude>
-    <ClInclude Include="SDL2\SDL_atomic.h">
-      <Filter>Header Files\SDL2</Filter>
-    </ClInclude>
-    <ClInclude Include="SDL2\SDL_audio.h">
-      <Filter>Header Files\SDL2</Filter>
-    </ClInclude>
-    <ClInclude Include="SDL2\SDL_bits.h">
-      <Filter>Header Files\SDL2</Filter>
-    </ClInclude>
-    <ClInclude Include="SDL2\SDL_blendmode.h">
-      <Filter>Header Files\SDL2</Filter>
-    </ClInclude>
-    <ClInclude Include="ArcadiaEngine.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MasterServer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="SDL2\SDL_config.h.cmake">
-      <Filter>Header Files\SDL2</Filter>
-    </None>
-    <None Include="SDL2\SDL_config.h.in">
-      <Filter>Header Files\SDL2</Filter>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Library Include="SDL2\SDL2.lib">
-      <Filter>Header Files\SDL2</Filter>
-    </Library>
-    <Library Include="SDL2\SDL2_image.lib">
-      <Filter>Header Files\SDL2</Filter>
-    </Library>
-    <Library Include="SDL2\SDL2_mixer.lib">
-      <Filter>Header Files\SDL2</Filter>
-    </Library>
-    <Library Include="SDL2\SDL2main.lib">
-      <Filter>Header Files\SDL2</Filter>
-    </Library>
-    <Library Include="SDL2\SDL2test.lib">
-      <Filter>Header Files\SDL2</Filter>
-    </Library>
   </ItemGroup>
 </Project>
