@@ -332,5 +332,8 @@
     <ClInclude Include="SDL2\SDL_assert.h">
       <Filter>Header Files\SDL2</Filter>
     </ClInclude>
+    <ClInclude Include="SocketBuffer.h">
+      <Filter>Header Files\WinsockWrapper</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

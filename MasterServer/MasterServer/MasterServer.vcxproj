@@ -118,6 +118,7 @@
     <ClInclude Include="SDL2\SDL_video.h" />
     <ClInclude Include="SimpleMD5.h" />
     <ClInclude Include="Socket.h" />
+    <ClInclude Include="SocketBuffer.h" />
     <ClInclude Include="TextureManager.h" />
     <ClInclude Include="TimeSlice.h" />
     <ClInclude Include="WindowManager.h" />
