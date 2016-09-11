@@ -7,14 +7,26 @@ class GUIMoveable : public GUIObjectNode
 {
 public:
 	static GUIMoveable* CreateMoveable(const char* imageFile, int x = 0, int y = 0, int w = 0, int h = 0, int grab_x = 0, int grab_y = 0, int grab_w = 0, int grab_h = 0);
+	static GUIMoveable* CreateTemplatedMoveable(const char* moveableTemplate, int x = 0, int y = 0, int w = 0, int h = 0, int grab_x = 0, int grab_y = 0, int grab_w = 0, int grab_h = 0);
 
-	GUIMoveable(int grab_x, int grab_y, int grab_w, int grab_h);
+	GUIMoveable(bool templated, int grab_x, int grab_y, int grab_w, int grab_h);
 	virtual ~GUIMoveable();
 
 	void Input(int xOffset = 0, int yOffset = 0) override;
 	void Render(int xOffset = 0, int yOffset = 0) override;
 
 private:
+	bool m_Templated;
+	TextureManager::ManagedTexture* TextureTopLeftCorner;
+	TextureManager::ManagedTexture* TextureTopRightCorner;
+	TextureManager::ManagedTexture* TextureBottomLeftCorner;
+	TextureManager::ManagedTexture* TextureBottomRightCorner;
+	TextureManager::ManagedTexture* TextureLeftSide;
+	TextureManager::ManagedTexture* TextureRightSide;
+	TextureManager::ManagedTexture* TextureTopSide;
+	TextureManager::ManagedTexture* TextureBottomSide;
+	TextureManager::ManagedTexture* TextureMiddle;
+
 	bool m_Grabbed;
 	int m_GrabX;
 	int m_GrabY;
@@ -26,7 +38,7 @@ private:
 
 inline GUIMoveable* GUIMoveable::CreateMoveable(const char* imageFile, int x, int y, int w, int h, int grab_x, int grab_y, int grab_w, int grab_h)
 {
-	auto newMoveable = new GUIMoveable(grab_x, grab_y, grab_w, grab_h);
+	auto newMoveable = new GUIMoveable(false, grab_x, grab_y, grab_w, grab_h);
 	newMoveable->SetTextureID(textureManager.LoadTextureGetID(imageFile));
 	newMoveable->SetX(x);
 	newMoveable->SetY(y);
@@ -35,7 +47,31 @@ inline GUIMoveable* GUIMoveable::CreateMoveable(const char* imageFile, int x, in
 	return newMoveable;
 }
 
-inline GUIMoveable::GUIMoveable(int grab_x, int grab_y, int grab_w, int grab_h) :
+inline GUIMoveable* GUIMoveable::CreateTemplatedMoveable(const char* moveableTemplate, int x, int y, int w, int h, int grab_x, int grab_y, int grab_w, int grab_h)
+{
+	auto newMoveable = new GUIMoveable(true, grab_x, grab_y, grab_w, grab_h);
+
+	auto templateFolder("./UITemplates/Moveable/" + std::string(moveableTemplate) + "/");
+	newMoveable->TextureTopLeftCorner = textureManager.LoadTexture(std::string(templateFolder + "TopLeftCorner.png").c_str());
+	newMoveable->TextureTopRightCorner = textureManager.LoadTexture(std::string(templateFolder + "TopRightCorner.png").c_str());
+	newMoveable->TextureBottomLeftCorner = textureManager.LoadTexture(std::string(templateFolder + "BottomLeftCorner.png").c_str());
+	newMoveable->TextureBottomRightCorner = textureManager.LoadTexture(std::string(templateFolder + "BottomRightCorner.png").c_str());
+	newMoveable->TextureLeftSide = textureManager.LoadTexture(std::string(templateFolder + "LeftSide.png").c_str());
+	newMoveable->TextureRightSide = textureManager.LoadTexture(std::string(templateFolder + "RightSide.png").c_str());
+	newMoveable->TextureTopSide = textureManager.LoadTexture(std::string(templateFolder + "TopSide.png").c_str());
+	newMoveable->TextureBottomSide = textureManager.LoadTexture(std::string(templateFolder + "BottomSide.png").c_str());
+	newMoveable->TextureMiddle = textureManager.LoadTexture(std::string(templateFolder + "Middle.png").c_str());
+	newMoveable->SetTextureID(0);
+
+	newMoveable->SetX(x);
+	newMoveable->SetY(y);
+	newMoveable->SetWidth(w);
+	newMoveable->SetHeight(h);
+	return newMoveable;
+}
+
+inline GUIMoveable::GUIMoveable(bool templated, int grab_x, int grab_y, int grab_w, int grab_h) :
+	m_Templated(templated),
 	m_Grabbed(false),
 	m_GrabX(grab_x),
 	m_GrabY(grab_y),
@@ -44,7 +80,15 @@ inline GUIMoveable::GUIMoveable(int grab_x, int grab_y, int grab_w, int grab_h) 
 	m_GrabLastX(0),
 	m_GrabLastY(0)
 {
-	
+	TextureTopLeftCorner = nullptr;
+	TextureTopRightCorner = nullptr;
+	TextureBottomLeftCorner = nullptr;
+	TextureBottomRightCorner = nullptr;
+	TextureLeftSide = nullptr;
+	TextureRightSide = nullptr;
+	TextureTopSide = nullptr;
+	TextureBottomSide = nullptr;
+	TextureMiddle = nullptr;
 }
 
 inline GUIMoveable::~GUIMoveable()
@@ -85,6 +129,26 @@ inline void GUIMoveable::Input(int xOffset, int yOffset)
 
 inline void GUIMoveable::Render(int xOffset, int yOffset)
 {
+	//  Render the object if we're able
+	if (!m_SetToDestroy && m_Visible && ((m_TextureID != 0) || m_Templated) && m_Width > 0 && m_Height > 0)
+	{
+		auto x = m_X + xOffset;
+		auto y = m_Y + yOffset;
+
+		if (m_Templated)
+		{
+			TextureTopLeftCorner->RenderTexture(x, y, TextureTopLeftCorner->getWidth(), TextureTopLeftCorner->getHeight());
+			TextureTopRightCorner->RenderTexture(x + m_Width - TextureTopRightCorner->getWidth(), y, TextureTopRightCorner->getWidth(), TextureTopRightCorner->getHeight());
+			TextureBottomLeftCorner->RenderTexture(x, y + m_Height - TextureBottomLeftCorner->getHeight(), TextureBottomLeftCorner->getWidth(), TextureBottomLeftCorner->getHeight());
+			TextureBottomRightCorner->RenderTexture(x + m_Width - TextureBottomRightCorner->getWidth(), y + m_Height - TextureBottomRightCorner->getHeight(), TextureBottomRightCorner->getWidth(), TextureBottomLeftCorner->getHeight());
+			TextureLeftSide->RenderTexture(x, y + TextureTopLeftCorner->getHeight(), TextureLeftSide->getWidth(), m_Height - TextureTopLeftCorner->getHeight() - TextureBottomLeftCorner->getHeight());
+			TextureRightSide->RenderTexture(x + m_Width - TextureRightSide->getWidth(), y + TextureTopRightCorner->getHeight(), TextureRightSide->getWidth(), m_Height - TextureTopRightCorner->getHeight() - TextureBottomRightCorner->getHeight());
+			TextureTopSide->RenderTexture(x + TextureTopLeftCorner->getWidth(), y, m_Width - TextureBottomLeftCorner->getWidth() - TextureBottomRightCorner->getWidth(), TextureTopSide->getHeight());
+			TextureBottomSide->RenderTexture(x + TextureBottomLeftCorner->getWidth(), y + m_Height - TextureBottomSide->getHeight(), m_Width - TextureBottomLeftCorner->getWidth() - TextureBottomRightCorner->getWidth(), TextureBottomSide->getHeight());
+			TextureMiddle->RenderTexture(x + TextureLeftSide->getWidth(), y + TextureTopSide->getHeight(), m_Width - TextureLeftSide->getWidth() - TextureRightSide->getWidth(), m_Height - TextureTopSide->getHeight() - TextureBottomSide->getHeight());
+		}
+	}
+
 	//  Do the base node render
 	GUIObjectNode::Render(xOffset, yOffset);
 }
