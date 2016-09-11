@@ -84,6 +84,8 @@ bool Server::Initialize(std::string serverName, unsigned int maxClients)
 
 bool Server::MainProcess(void)
 {
+	if (!Initialized) return false;
+
 	// Accept Incoming Connections
 	AcceptNewClients();
 
@@ -113,8 +115,6 @@ void Server::Shutdown(void)
 
 bool Server::Messages_MSL(void)
 {
-	if (!Initialized) return false;
-
 	//  If we've changed anything, send the server data to MSL to be updated
 	if (m_ChangedThisFrame)
 	{
@@ -173,8 +173,6 @@ void Server::RemoveClient(int index)
 
 void Server::AcceptNewClients(void)
 {
-	if (!Initialized) return;
-
 	int socketID = winsockWrapper.TCPAccept(ServerSocket, 1);
 	while (socketID >= 0)
 	{
