@@ -291,11 +291,11 @@ void ServerList::Messages_Clients(void)
 
 		switch (MessageID)
 		{
+		case 0:
+			SendServerList(m_ClientSocketDataList[i].m_SocketID);
+			break;
 		case 1:
 			m_ClientSocketDataList[i].m_PingCount = 0;
-			break;
-		case 2:
-			SendServerList(m_ClientSocketDataList[i].m_SocketID);
 			break;
 		}
 	}
@@ -304,11 +304,13 @@ void ServerList::Messages_Clients(void)
 void ServerList::SendServerList(int socketID)
 {
 	winsockWrapper.ClearBuffer(0);
+	winsockWrapper.WriteChar(0, 0);
 	for (auto i = 0; i < int(m_ServerSocketDataList.size()); ++i)
 	{
 		winsockWrapper.WriteUnsignedInt(winsockWrapper.ConvertIPtoUINT(m_ServerSocketDataList[i].m_IPAddress.c_str()), 0);
-		const char* test = m_ServerSocketDataList[i].m_Name.c_str();
-		winsockWrapper.WriteString(test, 0);
+		winsockWrapper.WriteString(m_ServerSocketDataList[i].m_Name.c_str(), 0);
+		winsockWrapper.WriteUnsignedInt(m_ServerSocketDataList[i].m_Clients, 0);
+		winsockWrapper.WriteUnsignedInt(m_ServerSocketDataList[i].m_MaxClients, 0);
 	}
 	winsockWrapper.WriteUnsignedInt(winsockWrapper.ConvertIPtoUINT("0.0.0.0"), 0);
 	winsockWrapper.SendMessagePacket(socketID, winsockWrapper.GetExteriorIP(socketID).c_str(), CLIENT_PORT, 0);
