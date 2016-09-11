@@ -4,10 +4,47 @@
 
 GUIEditBox* serverNameEditBox;
 GUIButton* serverStartButton;
+GUIDropDown* serverMaxClientsDropdown;
+GUILabel* serverRunningLabel;
 Server SERVER;
+void EndServer(); // Have to reference it so we can mention it in StartServer
+
+void StartServer()
+{
+	const GUILabel* maxClientsLabel = (const GUILabel*)(serverMaxClientsDropdown->GetSelectedItem());
+	if (!serverNameEditBox->GetText().empty() && SERVER.Initialize(serverNameEditBox->GetText(), atoi(maxClientsLabel->GetText().c_str())))
+	{
+		// Send information to the MSL
+		winsockWrapper.ClearBuffer(0);
+		winsockWrapper.WriteChar(2, 0);
+		winsockWrapper.WriteString(SERVER.GetName().c_str(), 0);
+		winsockWrapper.WriteUnsignedInt(SERVER.GetClientCount(), 0);
+		winsockWrapper.WriteUnsignedInt(SERVER.GetClientMax(), 0);
+		winsockWrapper.SendMessagePacket(SERVER.GetMSLSocket(), MSL_IP, MSL_PORT, 0);
+
+		serverStartButton->SetText("End Server");
+		serverNameEditBox->SetVisible(false);
+		serverMaxClientsDropdown->SetVisible(false);
+		serverRunningLabel->SetVisible(true);
+		serverStartButton->SetLeftClickCallback([=](GUIObjectNode*) { EndServer(); });
+	}
+}
+
+void EndServer()
+{
+	SERVER.Shutdown();
+
+	serverStartButton->SetText("Start Server");
+	serverNameEditBox->SetVisible(true);
+	serverMaxClientsDropdown->SetVisible(true);
+	serverRunningLabel->SetVisible(false);
+	serverStartButton->SetLeftClickCallback([=](GUIObjectNode*) { StartServer(); });
+}
 
 void CreateProgramData()
 {
+	windowManager.SetWindowCaption(0, "MSL Server");
+
 	//  Load the fonts for the UI
 	fontManager.SetFontFolder("Fonts/");
 	fontManager.LoadFont("Arial");
@@ -17,20 +54,20 @@ void CreateProgramData()
 	serverNameEditBox->SetFont(fontManager.GetFont("Arial"));
 	guiManager.GetBaseNode()->AddChild(serverNameEditBox);
 
-	serverStartButton = GUIButton::CreateTemplatedButton("Standard", 320, 10, 110, 32);
+	serverMaxClientsDropdown = GUIDropDown::CreateTemplatedDropDown("Standard", 320, 10, 100, 32, 76, 8, 16, 16);
+	serverMaxClientsDropdown->AddItem(GUILabel::CreateLabel(fontManager.GetFont("Arial"), "2", 10, 8, 80, 22));
+	serverMaxClientsDropdown->AddItem(GUILabel::CreateLabel(fontManager.GetFont("Arial"), "3", 10, 8, 80, 22));
+	serverMaxClientsDropdown->AddItem(GUILabel::CreateLabel(fontManager.GetFont("Arial"), "4", 10, 8, 80, 22));
+	guiManager.GetBaseNode()->AddChild(serverMaxClientsDropdown);
+
+	serverRunningLabel = GUILabel::CreateLabel(fontManager.GetFont("Arial"), "Server is running...", 290, 18, 200, 22);
+	serverRunningLabel->SetVisible(false);
+	guiManager.GetBaseNode()->AddChild(serverRunningLabel);
+
+	serverStartButton = GUIButton::CreateTemplatedButton("Standard", 450, 10, 110, 32);
 	serverStartButton->SetFont(fontManager.GetFont("Arial"));
 	serverStartButton->SetText("Start Server");
-	serverStartButton->SetLeftClickCallback([=](GUIObjectNode* object)
-	{
-		if (!serverNameEditBox->GetText().empty() && SERVER.Initialize())
-		{
-			// Send information to the MSL
-			winsockWrapper.ClearBuffer(0);
-			winsockWrapper.WriteChar(2, 0);
-			winsockWrapper.WriteString(serverNameEditBox->GetText().c_str(), 0);
-			winsockWrapper.SendMessagePacket(SERVER.GetMSLSocket(), MSL_IP, MSL_PORT, 0);
-		}
-	});
+	serverStartButton->SetLeftClickCallback([=](GUIObjectNode*) { StartServer(); });
 	guiManager.GetBaseNode()->AddChild(serverStartButton);
 }
 

@@ -21,12 +21,16 @@ private:
 			m_SocketID(socketID),
 			m_IPAddress(ipAddress),
 			m_Name(name),
+			m_Clients(0),
+			m_MaxClients(0),
 			m_PingCount(0)
 		{}
 
 		int m_SocketID;
 		std::string m_IPAddress;
 		std::string m_Name;
+		unsigned int m_Clients;
+		unsigned int m_MaxClients;
 		char m_PingCount;
 	};
 
@@ -58,15 +62,17 @@ public:
 	void SendServerList(int socketID);
 
 	// Accessors
-	inline int GetServerConnectSocket()					const { return ServerSocket[SERVERS]; }
-	inline int GetClientConnectSocket()					const { return ServerSocket[CLIENTS]; }
-	inline bool GetChangedThisFrame()					const { return m_ChangedThisFrame; }
-	inline unsigned int GetServerCount()				const { return m_ServerSocketDataList.size(); }
-	inline unsigned int GetClientCount()				const { return m_ClientSocketDataList.size(); }
-	inline const int GetServerSocket(int index)			const { return m_ServerSocketDataList[index].m_SocketID;	}
-	inline const std::string& GetServerIP(int index)	const { return m_ServerSocketDataList[index].m_IPAddress;	}
-	inline const std::string& GetServerName(int index)	const { return m_ServerSocketDataList[index].m_Name;		}
-	inline const std::string& GetClientIP(int index)	const { return m_ClientSocketDataList[index].m_IPAddress;	}
+	inline int GetServerConnectSocket()							const { return ServerSocket[SERVERS]; }
+	inline int GetClientConnectSocket()							const { return ServerSocket[CLIENTS]; }
+	inline bool GetChangedThisFrame()							const { return m_ChangedThisFrame; }
+	inline unsigned int GetServerCount()						const { return m_ServerSocketDataList.size(); }
+	inline unsigned int GetClientCount()						const { return m_ClientSocketDataList.size(); }
+	inline const int GetServerSocket(int index)					const { return m_ServerSocketDataList[index].m_SocketID; }
+	inline const std::string& GetServerIP(int index)			const { return m_ServerSocketDataList[index].m_IPAddress; }
+	inline const std::string& GetServerName(int index)			const { return m_ServerSocketDataList[index].m_Name; }
+	inline const unsigned int GetServerClientCount(int index)	const { return m_ServerSocketDataList[index].m_Clients; }
+	inline const unsigned int GetServerClientMax(int index)		const { return m_ServerSocketDataList[index].m_MaxClients; }
+	inline const std::string& GetClientIP(int index)			const { return m_ClientSocketDataList[index].m_IPAddress; }
 };
 
 
@@ -196,7 +202,10 @@ void ServerList::Messages_Servers(void)
 			break;
 		case 2:
 			m_ServerSocketDataList[i].m_Name = winsockWrapper.ReadString(0);
+			m_ServerSocketDataList[i].m_Clients = winsockWrapper.ReadUnsignedInt(0);
+			m_ServerSocketDataList[i].m_MaxClients = winsockWrapper.ReadUnsignedInt(0);
 			m_ServerSocketDataList[i].m_PingCount = 0;
+			m_ChangedThisFrame = true;
 			break;
 		}
 	}

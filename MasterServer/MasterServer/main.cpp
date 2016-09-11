@@ -6,7 +6,7 @@ ServerList MSL;
 GUIListBox* serverListBox = nullptr;
 GUIListBox* clientListBox = nullptr;
 
-void AddServer(const char* serverName, int playerMax, const char* ipAddress, bool favorited)
+void AddServer(const char* serverName, int clientCount, int clientMax, const char* ipAddress, bool favorited)
 {
 	GUIObjectNode* entryNode = new GUIObjectNode;
 
@@ -15,7 +15,7 @@ void AddServer(const char* serverName, int playerMax, const char* ipAddress, boo
 	entryNode->AddChild(serverNameLabel);
 
 	char playersString[16];
-	sprintf_s(playersString, 16, "[0 / %d]", playerMax);
+	sprintf_s(playersString, 16, "[%d / %d]", clientCount, clientMax);
 	GUILabel* serverPlayersLabel = GUILabel::CreateLabel(fontManager.GetFont("Arial"), playersString, 340, 8, 60, 22);
 	serverPlayersLabel->SetJustification(GUILabel::JUSTIFY_LEFT);
 	entryNode->AddChild(serverPlayersLabel);
@@ -44,6 +44,8 @@ void AddClient(const char* ipAddress)
 
 void CreateProgramData()
 {
+	windowManager.SetWindowCaption(0, "MSL Master Server");
+
 	//  Load the fonts for the UI
 	fontManager.SetFontFolder("Fonts/");
 	fontManager.LoadFont("Arial");
@@ -68,7 +70,7 @@ void UpdateMSLDisplay()
 	serverListBox->ClearItems();
 	for (unsigned int i = 0, serverCount = MSL.GetServerCount(); i < serverCount; ++i)
 	{
-		AddServer(MSL.GetServerName(i).c_str(), 0, MSL.GetServerIP(i).c_str(), false);
+		AddServer(MSL.GetServerName(i).c_str(), MSL.GetServerClientCount(i), MSL.GetServerClientMax(i), MSL.GetServerIP(i).c_str(), false);
 	}
 
 	//  Clear and repopulate the client list

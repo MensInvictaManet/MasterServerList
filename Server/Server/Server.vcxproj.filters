@@ -327,6 +327,9 @@
     <ClInclude Include="Server.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="GUIDropDown.h">
+      <Filter>Header Files\GUIObject Types</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

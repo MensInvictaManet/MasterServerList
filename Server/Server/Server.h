@@ -31,6 +31,9 @@ private:
 	int ServerSocket;
 	int MSLSocket;
 
+	std::string m_Name;
+	unsigned int m_ClientMax;
+
 	std::vector<SocketData> m_ClientSocketDataList;
 	bool m_ChangedThisFrame;
 
@@ -38,7 +41,7 @@ public:
 	Server(void) : Initialized(false) {}
 	~Server(void) {}
 
-	bool Initialize(void);
+	bool Initialize(std::string serverName = "TEST SERVER", unsigned int maxClients = 4);
 	bool MainProcess(void);
 	void Shutdown(void);
 
@@ -53,9 +56,12 @@ public:
 
 	inline const char* GetClientIP(int i) { return m_ClientSocketDataList[i].m_IPAddress.c_str(); }
 	inline int GetMSLSocket(void) { return MSLSocket; }
+	inline std::string GetName() const { return m_Name; }
+	inline unsigned int GetClientCount() const { return (unsigned int)(m_ClientSocketDataList.size()); }
+	inline unsigned int GetClientMax() const { return m_ClientMax; }
 };
 
-bool Server::Initialize()
+bool Server::Initialize(std::string serverName, unsigned int maxClients)
 {
 	if (Initialized) return false;
 
@@ -67,6 +73,11 @@ bool Server::Initialize()
 	// Connect to the MSL
 	MSLSocket = winsockWrapper.TCPConnect(MSL_IP, MSL_PORT, 1);
 	if (MSLSocket == -1) return false;
+
+	m_Name = serverName;
+	m_ClientMax = maxClients;
+	m_ChangedThisFrame = true;
+	Initialized = true;
 
 	return true;
 }
@@ -85,12 +96,36 @@ bool Server::MainProcess(void)
 
 void Server::Shutdown(void)
 {
+	if (Initialized == false) return;
+
+	Initialized = false;
 	winsockWrapper.CloseSocket(ServerSocket);
+	ServerSocket = -1;
 	winsockWrapper.CloseSocket(MSLSocket);
+	MSLSocket = -1;
+
+	m_Name = "";
+	m_ClientMax = 0;
+
+	m_ClientSocketDataList.clear();
+	m_ChangedThisFrame = false;
 }
 
 bool Server::Messages_MSL(void)
 {
+	if (!Initialized) return false;
+
+	//  If we've changed anything, send the server data to MSL to be updated
+	if (m_ChangedThisFrame)
+	{
+		winsockWrapper.ClearBuffer(0);
+		winsockWrapper.WriteChar(2, 0);
+		winsockWrapper.WriteString(m_Name.c_str(), 0);
+		winsockWrapper.WriteUnsignedInt((unsigned int)(m_ClientSocketDataList.size()), 0);
+		winsockWrapper.WriteUnsignedInt(m_ClientMax, 0);
+		winsockWrapper.SendMessagePacket(MSLSocket, MSL_IP, MSL_PORT, 0);
+	}
+
 	int MessageBuffer = winsockWrapper.ReceiveMessagePacket(MSLSocket, 0, 0);
 	if (MessageBuffer == 0) return false;
 	if (MessageBuffer < 0) return true;
@@ -100,6 +135,7 @@ bool Server::Messages_MSL(void)
 	switch (MessageID)
 	{
 	case 1:
+		//  Ping message... send back a ping return so MSL will know we're alive
 		winsockWrapper.ClearBuffer(0);
 		winsockWrapper.WriteChar(1, 0);
 		winsockWrapper.SendMessagePacket(MSLSocket, MSL_IP, MSL_PORT, 0);
@@ -137,10 +173,12 @@ void Server::RemoveClient(int index)
 
 void Server::AcceptNewClients(void)
 {
+	if (!Initialized) return;
+
 	int socketID = winsockWrapper.TCPAccept(ServerSocket, 1);
 	while (socketID >= 0)
 	{
-		AddClient(socketID, winsockWrapper.GetIP(socketID).c_str());
+		AddClient(socketID, winsockWrapper.GetExteriorIP(socketID).c_str());
 
 		// Check for another client connection
 		socketID = winsockWrapper.TCPAccept(ServerSocket, 1);
