@@ -26,6 +26,8 @@ public:
 
 	inline void AddItem(GUIObjectNode* item) { m_ItemList.push_back(item); UpdateMover(); }
 	inline void ClearItems() { for (auto iter = m_ItemList.begin(); iter != m_ItemList.end(); ++iter) { guiManager.DestroyNode((*iter)); } m_ItemList.clear(); }
+	inline void SelectItem(unsigned int index) { SelectedIndex = std::min(index, m_ItemList.size() - 1); }
+	inline const GUIObjectNode* GetSelectedItem() const { return (SelectedIndex == -1) ? nullptr : m_ItemList[SelectedIndex]; }
 
 private:
 	GUIListBoxCallback	m_ItemClickCallback;
