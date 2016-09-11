@@ -59,6 +59,7 @@ public:
 	int GetWindowWidth(const int index = -1);
 	int GetWindowHeight(const int index = -1);
 	bool SetCurrentWindow(const int index = -1);
+	bool SetWindowCaption(const int index = -1, const char* newCaption = "");
 
 private:
 
@@ -148,15 +149,19 @@ inline void WindowManager::WindowLink::HandleEvent(SDL_Event& e)
 		case SDL_WINDOWEVENT_CLOSE:
 			SDL_HideWindow(m_Window);
 			break;
+
+		case SDL_WINDOWEVENT_MOVED:
+		default:
+			break;
 		}
 
-		//Update window caption with new data
-		if (updateCaption)
-		{
-			std::stringstream caption;
-			caption << "Arcadia Engine - ID: " << m_WindowID << " MouseFocus:" << ((m_MouseFocus) ? "On" : "Off") << " KeyboardFocus:" << ((m_KeyboardFocus) ? "On" : "Off");
-			SDL_SetWindowTitle(m_Window, caption.str().c_str());
-		}
+		////Update window caption with new data
+		//if (updateCaption)
+		//{
+		//	std::stringstream caption;
+		//	caption << "Arcadia Engine - ID: " << m_WindowID << " MouseFocus:" << ((m_MouseFocus) ? "On" : "Off") << " KeyboardFocus:" << ((m_KeyboardFocus) ? "On" : "Off");
+		//	SDL_SetWindowTitle(m_Window, caption.str().c_str());
+		//}
 	}
 }
 
@@ -336,6 +341,14 @@ inline bool WindowManager::SetCurrentWindow(const int index)
 	if (iter == m_WindowList.end()) return false;
 
 	SDL_GL_MakeCurrent((*iter).second->m_Window, (*iter).second->m_Context);
+	return true;
+}
+
+inline bool WindowManager::SetWindowCaption(const int index, const char* newCaption)
+{
+	if (index < -1 || index >= int(m_WindowList.size())) return false;
+	WindowLink* window = m_WindowList[(index == -1) ? m_CurrentWindow : index];
+	SDL_SetWindowTitle(window->m_Window, newCaption);
 	return true;
 }
 
