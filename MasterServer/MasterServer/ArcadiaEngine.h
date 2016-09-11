@@ -48,6 +48,7 @@
 #include "GUICheckbox.h"
 #include "GUIEditBox.h"
 #include "GUIListBox.h"
+#include "GUIDropDown.h"
 #include "InputManager.h"
 #include "FontManager.h"
 #include "TimeSlice.h"

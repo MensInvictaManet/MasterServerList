@@ -26,6 +26,7 @@
     <ClInclude Include="FontManager.h" />
     <ClInclude Include="GUIButton.h" />
     <ClInclude Include="GUICheckbox.h" />
+    <ClInclude Include="GUIDropDown.h" />
     <ClInclude Include="GUIEditBox.h" />
     <ClInclude Include="GUILabel.h" />
     <ClInclude Include="GUIListBox.h" />

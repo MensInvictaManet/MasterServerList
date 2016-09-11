@@ -335,5 +335,8 @@
     <ClInclude Include="SocketBuffer.h">
       <Filter>Header Files\WinsockWrapper</Filter>
     </ClInclude>
+    <ClInclude Include="GUIDropDown.h">
+      <Filter>Header Files\GUI Object Types</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
