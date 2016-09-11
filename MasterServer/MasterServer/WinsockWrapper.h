@@ -47,7 +47,7 @@ public:
 	int GetSocketID(int socketID);
 
 	//  IP Information
-	std::string GetIP(int socketID);
+	std::string GetExteriorIP(int socketID);
 	static char* GetLastInIP();
 	static double GetLastInPort();
 
@@ -150,7 +150,6 @@ inline void WinsockWrapper::WinsockInitialize(unsigned int bufferCount)
 	WSAStartup(MAKEWORD(2, 2), &wsaData);
 
 	for (unsigned int i = 0; i < bufferCount; ++i) AddBuffer(new SocketBuffer());
-	AddSocket(new Socket());
 
 	//  Set the flag to ensure we don't double-initialize Winsock
 	m_WinsockInitialized = true;
@@ -352,7 +351,7 @@ inline int WinsockWrapper::GetSocketID(int socketID)
 	return ((socket == nullptr) ? -1 : int(socket->sockid));
 }
 
-inline std::string WinsockWrapper::GetIP(int socketID)
+inline std::string WinsockWrapper::GetExteriorIP(int socketID)
 {
 	auto socket = m_SocketList[socketID];
 	return socket->tcpip();

@@ -58,11 +58,6 @@ void CreateProgramData()
 	guiManager.GetBaseNode()->AddChild(GUILabel::CreateLabel(fontManager.GetFont("Arial"), "Client List:", 674, 52, 100, 22));
 	clientListBox = GUIListBox::CreateTemplatedListBox("Standard", 674, 70, 120, 526, 756, 6, 32, 32, 32, 32, 32, 22, 2);
 	guiManager.GetBaseNode()->AddChild(clientListBox);
-
-	AddServer("Test Server Name", 10, "127.0.0.1", false);
-	AddServer("/chicken Forever", 32, "192.168.0.1", true);
-	AddClient("127.0.0.1");
-	//serverListBox->ClearItems();
 }
 
 void UpdateMSLDisplay()

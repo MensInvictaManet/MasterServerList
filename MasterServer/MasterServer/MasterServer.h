@@ -58,6 +58,8 @@ public:
 	void SendServerList(int socketID);
 
 	// Accessors
+	inline int GetServerConnectSocket()					const { return ServerSocket[SERVERS]; }
+	inline int GetClientConnectSocket()					const { return ServerSocket[CLIENTS]; }
 	inline bool GetChangedThisFrame()					const { return m_ChangedThisFrame; }
 	inline unsigned int GetServerCount()				const { return m_ServerSocketDataList.size(); }
 	inline unsigned int GetClientCount()				const { return m_ClientSocketDataList.size(); }
@@ -165,7 +167,7 @@ void ServerList::AcceptNewServers(void)
 	int socketID = winsockWrapper.TCPAccept(ServerSocket[SERVERS], 1);
 	while (socketID >= 0)
 	{
-		AddServer(socketID, winsockWrapper.GetIP(socketID), "::NAME UNKNOWN::");
+		AddServer(socketID, winsockWrapper.GetExteriorIP(socketID), "::NAME UNKNOWN::");
 
 		// Check for another server connection
 		socketID = winsockWrapper.TCPAccept(ServerSocket[SERVERS], 1);
@@ -256,7 +258,7 @@ void ServerList::AcceptNewClients(void)
 	int socketID = winsockWrapper.TCPAccept(ServerSocket[CLIENTS], 1);
 	while (socketID >= 0)
 	{
-		AddClient(socketID, winsockWrapper.GetIP(socketID).c_str());
+		AddClient(socketID, winsockWrapper.GetExteriorIP(socketID).c_str());
 
 		// Check for another client connection
 		socketID = winsockWrapper.TCPAccept(ServerSocket[CLIENTS], 1);
@@ -300,5 +302,5 @@ void ServerList::SendServerList(int socketID)
 		winsockWrapper.WriteString(test, 0);
 	}
 	winsockWrapper.WriteUnsignedInt(winsockWrapper.ConvertIPtoUINT("0.0.0.0"), 0);
-	winsockWrapper.SendMessagePacket(socketID, winsockWrapper.GetIP(socketID).c_str(), CLIENT_PORT, 0);
+	winsockWrapper.SendMessagePacket(socketID, winsockWrapper.GetExteriorIP(socketID).c_str(), CLIENT_PORT, 0);
 }
