@@ -16,8 +16,9 @@ public:
 	explicit GUIEditBox(bool templated);
 	virtual ~GUIEditBox();
 
-	void SetFont(const Font* font) { m_Font = font; }
-	void SetText(const std::string text) { m_Text = text; }
+	inline void SetFont(const Font* font) { m_Font = font; }
+	inline void SetText(const std::string text) { m_Text = text; }
+	inline const std::string GetText() const { return m_Text; }
 
 	void Input(int xOffset = 0, int yOffset = 0) override;
 	void Render(int xOffset = 0, int yOffset = 0) override;

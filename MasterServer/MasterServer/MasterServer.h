@@ -34,7 +34,6 @@ private:
 
 	std::vector<SocketData> m_ServerSocketDataList;
 	std::vector<SocketData> m_ClientSocketDataList;
-
 	bool m_ChangedThisFrame;
 
 public:
@@ -213,7 +212,6 @@ void ServerList::AddClient(int socketID, std::string ipAddress)
 
 void ServerList::RemoveClient(int index)
 {
-
 	if (index >= int(m_ClientSocketDataList.size())) return;
 
 	//  Look through the server list and if we find the one we're looking for, remove it
