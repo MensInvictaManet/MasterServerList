@@ -7,6 +7,7 @@
 #define USING_SDL_MIXER		false
 
 #define AUDIO_ENABLED		false
+#define CONSOLE_DISABLED	true
 
 #if USING_SDL
 #include "SDL2/SDL.h"
@@ -32,6 +33,10 @@
 #if AUDIO_ENABLED
 #if USING_SDL_MIXER
 #endif
+#endif
+
+#if CONSOLE_DISABLED
+#pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
 #endif
 
 #include "WindowManager.h"
