@@ -13,6 +13,8 @@ public:
 	explicit GUILabel(const char* text = "");
 	virtual ~GUILabel();
 
+	inline std::string GetText() const { return m_Text; }
+
 	void SetFont(const Font* font) { m_Font = font; }
 	void SetText(const std::string text) { m_Text = text; }
 	void SetJustification(int justify) { m_Justification = justify; }
