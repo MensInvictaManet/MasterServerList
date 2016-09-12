@@ -3,6 +3,11 @@
 
 Client CLIENT;
 
+GUILabel* serverListLabel;
+GUIListBox* serverListBox;
+GUIButton* serverListRefreshButton;
+GUIButton* serverListPickButton;
+
 void CreateProgramData()
 {
 	windowManager.SetWindowCaption(0, "MSL Client");
@@ -12,8 +17,64 @@ void CreateProgramData()
 	fontManager.LoadFont("Arial");
 	fontManager.LoadFont("Arial-12-White");
 
-	auto container = GUIMoveable::CreateTemplatedMoveable("Standard", 10, 10, 300, 300, 0, 0, 300, 16);
-	guiManager.GetBaseNode()->AddChild(container);
+	serverListLabel = GUILabel::CreateLabel(fontManager.GetFont("Arial"), "Select a server:", 16, 20, 100, 22);
+	guiManager.GetBaseNode()->AddChild(serverListLabel);
+
+	serverListBox = GUIListBox::CreateTemplatedListBox("Standard", 12, 40, 610, 688, 586, 4, 16, 16, 16, 16, 16, 22, 2);
+	guiManager.GetBaseNode()->AddChild(serverListBox);
+
+	serverListRefreshButton = GUIButton::CreateTemplatedButton("Standard", 12, 726, 300, 30);
+	serverListRefreshButton->SetFont(fontManager.GetFont("Arial"));
+	serverListRefreshButton->SetText("Refresh Server List");
+	serverListRefreshButton->SetLeftClickCallback([=](GUIObjectNode*)
+	{
+		CLIENT.RequestServerList();
+	});
+	guiManager.GetBaseNode()->AddChild(serverListRefreshButton);
+
+	serverListPickButton = GUIButton::CreateTemplatedButton("Standard", 322, 726, 300, 30);
+	serverListPickButton->SetFont(fontManager.GetFont("Arial"));
+	serverListPickButton->SetText("Connect To Server");
+	serverListPickButton->SetLeftClickCallback([=](GUIObjectNode*)
+	{
+
+	});
+	guiManager.GetBaseNode()->AddChild(serverListPickButton);
+}
+
+void AddServerDisplay(std::string& serverName, std::string& serverIP, unsigned int clientCount, unsigned int clientMax)
+{
+	GUIObjectNode* entryNode = new GUIObjectNode;
+
+	GUILabel* serverNameLabel = GUILabel::CreateLabel(fontManager.GetFont("Arial"), serverName.c_str(), 10, 8, 100, 22);
+	serverNameLabel->SetJustification(GUILabel::JUSTIFY_LEFT);
+	entryNode->AddChild(serverNameLabel);
+
+	GUILabel* serverIPLabel = GUILabel::CreateLabel(fontManager.GetFont("Arial"), serverIP.c_str(), 340, 8, 100, 22);
+	serverIPLabel->SetJustification(GUILabel::JUSTIFY_CENTER);
+	entryNode->AddChild(serverIPLabel);
+
+	char playersString[16];
+	sprintf_s(playersString, 16, "[%d / %d]", clientCount, clientMax);
+	GUILabel* serverPlayersLabel = GUILabel::CreateLabel(fontManager.GetFont("Arial"), playersString, 536, 8, 60, 22);
+	serverPlayersLabel->SetJustification(GUILabel::JUSTIFY_LEFT);
+	entryNode->AddChild(serverPlayersLabel);
+
+	serverListBox->AddItem(entryNode);
+}
+
+void UpdateServerListDisplay()
+{
+	if (CLIENT.GetClientState() == Client::CLIENT_STATE_DISCONNECTED && CLIENT.GetChangedThisFrame())
+	{
+		serverListBox->ClearItems();
+
+		auto serverList = CLIENT.GetServerList();
+		for (auto iter = serverList.begin(); iter != serverList.end(); ++iter)
+		{
+			AddServerDisplay((*iter).m_ServerName, (*iter).m_ServerIP, (*iter).m_Clients, (*iter).m_ClientsMax);
+		}
+	}
 }
 
 void RenderScreen()
@@ -98,6 +159,7 @@ void PrimaryLoop()
 
 		//  Update
 		CLIENT.MainProcess();
+		UpdateServerListDisplay();
 
 		//  Render
 		RenderScreen();

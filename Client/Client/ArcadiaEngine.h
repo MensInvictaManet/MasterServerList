@@ -59,8 +59,8 @@
 #endif
 
 //  Screen dimension constants (change per project)
-#define	SCREEN_WIDTH	570
-#define	SCREEN_HEIGHT	200
+#define	SCREEN_WIDTH	1024
+#define	SCREEN_HEIGHT	768
 
 bool InitializeSDL()
 {
