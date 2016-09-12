@@ -27,8 +27,7 @@ inline void GUIManager::DestroyNode(GUIObjectNode* nodeToDestroy)
 {
 	if (nodeToDestroy->m_SetToDestroy == true) return;
 
-	nodeToDestroy->SetToDestroy();
-	m_NodesToDestroy[nodeToDestroy] = true;
+	nodeToDestroy->SetToDestroy(m_NodesToDestroy);
 }
 
 inline void GUIManager::Input()

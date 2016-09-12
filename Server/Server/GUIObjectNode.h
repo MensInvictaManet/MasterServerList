@@ -4,6 +4,7 @@
 
 #include <deque>
 #include <assert.h>
+#include <map>
 
 class GUIObjectNode
 {
@@ -18,7 +19,7 @@ public:
 
 	virtual void Input(int xOffset = 0, int yOffset = 0);
 	virtual void Render(int xOffset = 0, int yOffset = 0);
-	virtual void SetToDestroy();
+	virtual void SetToDestroy(std::map<GUIObjectNode*, bool>& destroyList);
 	virtual void Destroy();
 
 	void SetX(int x) { m_X = x; }
@@ -27,6 +28,7 @@ public:
 	void SetHeight(int height) { m_Height = height; }
 	void SetTextureID(int textureID) { m_TextureID = textureID; }
 	void SetVisible(bool visible) { m_Visible = visible; }
+	void SetParent(GUIObjectNode* parent) { m_Parent = parent; }
 
 	int GetX() const { return m_X; }
 	int GetY() const { return m_Y; }
@@ -98,12 +100,13 @@ inline void GUIObjectNode::Render(int xOffset, int yOffset)
 	for (auto iter = m_Children.begin(); iter != m_Children.end(); ++iter) (*iter)->Render(x, y);
 }
 
-inline void GUIObjectNode::SetToDestroy()
+inline void GUIObjectNode::SetToDestroy(std::map<GUIObjectNode*, bool>& destroyList)
 {
 	m_SetToDestroy = true;
+	destroyList[this] = true;
 
 	//  Pass the 'set to destroy' call to all children
-	for (auto iter = m_Children.begin(); iter != m_Children.end(); ++iter) (*iter)->SetToDestroy();
+	for (auto iter = m_Children.begin(); iter != m_Children.end(); ++iter) (*iter)->SetToDestroy(destroyList);
 }
 
 inline void GUIObjectNode::Destroy()
@@ -111,7 +114,13 @@ inline void GUIObjectNode::Destroy()
 	if (m_Parent != nullptr) m_Parent->RemoveChild(this);
 
 	//  Pass the destroy call to all children
-	while (!m_Children.empty()) (*m_Children.begin())->Destroy();
+	while (!m_Children.empty())
+	{
+		auto child = m_Children.back();
+		m_Children.pop_back();
+		child->SetParent(nullptr);
+		child->Destroy();
+	}
 }
 
 inline void GUIObjectNode::AddChild(GUIObjectNode* child)
