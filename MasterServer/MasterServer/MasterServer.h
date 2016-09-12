@@ -41,7 +41,7 @@ private:
 	bool m_ChangedThisFrame;
 
 public:
-	ServerList(void) {}
+	ServerList(void) : m_ChangedThisFrame(false) {}
 	~ServerList(void) {}
 
 	bool Initialize(void);
@@ -67,16 +67,16 @@ public:
 	inline bool GetChangedThisFrame()							const { return m_ChangedThisFrame; }
 	inline unsigned int GetServerCount()						const { return m_ServerSocketDataList.size(); }
 	inline unsigned int GetClientCount()						const { return m_ClientSocketDataList.size(); }
-	inline const int GetServerSocket(int index)					const { return m_ServerSocketDataList[index].m_SocketID; }
+	inline int GetServerSocket(int index)					const { return m_ServerSocketDataList[index].m_SocketID; }
 	inline const std::string& GetServerIP(int index)			const { return m_ServerSocketDataList[index].m_IPAddress; }
 	inline const std::string& GetServerName(int index)			const { return m_ServerSocketDataList[index].m_Name; }
-	inline const unsigned int GetServerClientCount(int index)	const { return m_ServerSocketDataList[index].m_Clients; }
-	inline const unsigned int GetServerClientMax(int index)		const { return m_ServerSocketDataList[index].m_MaxClients; }
+	inline unsigned int GetServerClientCount(int index)	const { return m_ServerSocketDataList[index].m_Clients; }
+	inline unsigned int GetServerClientMax(int index)		const { return m_ServerSocketDataList[index].m_MaxClients; }
 	inline const std::string& GetClientIP(int index)			const { return m_ClientSocketDataList[index].m_IPAddress; }
 };
 
 
-bool ServerList::Initialize(void)
+inline bool ServerList::Initialize(void)
 {
 	// Initialize the Listening Port for Servers
 	ServerSocket[SERVERS] = winsockWrapper.TCPListen(SERVER_PORT, 0, 1);
@@ -91,7 +91,7 @@ bool ServerList::Initialize(void)
 	return true;
 }
 
-void ServerList::MainProcess(void)
+inline void ServerList::MainProcess(void)
 {
 	m_ChangedThisFrame = false;
 
@@ -108,7 +108,7 @@ void ServerList::MainProcess(void)
 	Messages_Clients();
 }
 
-void ServerList::Shutdown(void)
+inline void ServerList::Shutdown(void)
 {
 	winsockWrapper.CloseSocket(ServerSocket[SERVERS]);
 	winsockWrapper.CloseSocket(ServerSocket[CLIENTS]);
@@ -119,13 +119,13 @@ void ServerList::Shutdown(void)
 //	Server Connection Functions
 ////////////////////////////////////////
 
-void ServerList::AddServer(int socketID, std::string ipAddress, std::string name)
+inline void ServerList::AddServer(int socketID, std::string ipAddress, std::string name)
 {
 	m_ServerSocketDataList.push_back(SocketData(socketID, ipAddress, name));
 	m_ChangedThisFrame = true;
 }
 
-void ServerList::RemoveServer(int index)
+inline void ServerList::RemoveServer(int index)
 {
 	if (index >= int(m_ServerSocketDataList.size())) return;
 
@@ -143,7 +143,7 @@ void ServerList::RemoveServer(int index)
 
 
 
-void ServerList::PingServers()
+inline void ServerList::PingServers()
 {
 	// Only run this every 5 seconds
 	static float TIME_PingOffset = 0.0;
@@ -168,9 +168,9 @@ void ServerList::PingServers()
 	}
 }
 
-void ServerList::AcceptNewServers(void)
+inline void ServerList::AcceptNewServers(void)
 {
-	int socketID = winsockWrapper.TCPAccept(ServerSocket[SERVERS], 1);
+	auto socketID = winsockWrapper.TCPAccept(ServerSocket[SERVERS], 1);
 	while (socketID >= 0)
 	{
 		AddServer(socketID, winsockWrapper.GetExteriorIP(socketID), "::NAME UNKNOWN::");
@@ -180,11 +180,11 @@ void ServerList::AcceptNewServers(void)
 	}
 }
 
-void ServerList::Messages_Servers(void)
+inline void ServerList::Messages_Servers(void)
 {
 	for (auto i = 0; i < int(m_ServerSocketDataList.size()); ++i)
 	{
-		int MessageBuffer = winsockWrapper.ReceiveMessagePacket(m_ServerSocketDataList[i].m_SocketID, 0, 0);
+		auto MessageBuffer = winsockWrapper.ReceiveMessagePacket(m_ServerSocketDataList[i].m_SocketID, 0, 0);
 		if (MessageBuffer == 0)
 		{
 			RemoveServer(i);
@@ -207,6 +207,8 @@ void ServerList::Messages_Servers(void)
 			m_ServerSocketDataList[i].m_PingCount = 0;
 			m_ChangedThisFrame = true;
 			break;
+
+		default:break;
 		}
 	}
 }
@@ -215,13 +217,13 @@ void ServerList::Messages_Servers(void)
 //	Client Connection Functions
 ////////////////////////////////////////
 
-void ServerList::AddClient(int socketID, std::string ipAddress)
+inline void ServerList::AddClient(int socketID, std::string ipAddress)
 {
 	m_ClientSocketDataList.push_back(SocketData(socketID, ipAddress, ""));
 	m_ChangedThisFrame = true;
 }
 
-void ServerList::RemoveClient(int index)
+inline void ServerList::RemoveClient(int index)
 {
 	if (index >= int(m_ClientSocketDataList.size())) return;
 
@@ -237,7 +239,7 @@ void ServerList::RemoveClient(int index)
 	}
 }
 
-void ServerList::PingClients()
+inline void ServerList::PingClients()
 {
 	// Only run this every 5 seconds
 	static float TIME_PingOffset = 0.0;
@@ -262,9 +264,9 @@ void ServerList::PingClients()
 	}
 }
 
-void ServerList::AcceptNewClients(void)
+inline void ServerList::AcceptNewClients(void)
 {
-	int socketID = winsockWrapper.TCPAccept(ServerSocket[CLIENTS], 1);
+	auto socketID = winsockWrapper.TCPAccept(ServerSocket[CLIENTS], 1);
 	while (socketID >= 0)
 	{
 		AddClient(socketID, winsockWrapper.GetExteriorIP(socketID).c_str());
@@ -274,11 +276,11 @@ void ServerList::AcceptNewClients(void)
 	}
 }
 
-void ServerList::Messages_Clients(void)
+inline void ServerList::Messages_Clients(void)
 {
 	for (auto i = 0; i < int(m_ClientSocketDataList.size()); ++i)
 	{
-		int MessageBuffer = winsockWrapper.ReceiveMessagePacket(m_ClientSocketDataList[i].m_SocketID, 0, 0);
+		auto MessageBuffer = winsockWrapper.ReceiveMessagePacket(m_ClientSocketDataList[i].m_SocketID, 0, 0);
 		if (MessageBuffer == 0)
 		{
 			RemoveClient(i);
@@ -297,11 +299,13 @@ void ServerList::Messages_Clients(void)
 		case 1:
 			m_ClientSocketDataList[i].m_PingCount = 0;
 			break;
+
+		default:break;
 		}
 	}
 }
 
-void ServerList::SendServerList(int socketID)
+inline void ServerList::SendServerList(int socketID)
 {
 	winsockWrapper.ClearBuffer(0);
 	winsockWrapper.WriteChar(0, 0);

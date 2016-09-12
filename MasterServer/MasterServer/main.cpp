@@ -8,23 +8,23 @@ GUIListBox* clientListBox = nullptr;
 
 void AddServer(const char* serverName, int clientCount, int clientMax, const char* ipAddress, bool favorited)
 {
-	GUIObjectNode* entryNode = new GUIObjectNode;
+	auto entryNode = new GUIObjectNode;
 
-	GUILabel* serverNameLabel = GUILabel::CreateLabel(fontManager.GetFont("Arial"), serverName, 10, 8, 100, 22);
+	auto serverNameLabel = GUILabel::CreateLabel(fontManager.GetFont("Arial"), serverName, 10, 8, 100, 22);
 	serverNameLabel->SetJustification(GUILabel::JUSTIFY_LEFT);
 	entryNode->AddChild(serverNameLabel);
 
 	char playersString[16];
 	sprintf_s(playersString, 16, "[%d / %d]", clientCount, clientMax);
-	GUILabel* serverPlayersLabel = GUILabel::CreateLabel(fontManager.GetFont("Arial"), playersString, 340, 8, 60, 22);
+	auto serverPlayersLabel = GUILabel::CreateLabel(fontManager.GetFont("Arial"), playersString, 340, 8, 60, 22);
 	serverPlayersLabel->SetJustification(GUILabel::JUSTIFY_LEFT);
 	entryNode->AddChild(serverPlayersLabel);
 
-	GUILabel* serverIPLabel = GUILabel::CreateLabel(fontManager.GetFont("Arial"), ipAddress, 500, 8, 100, 22);
+	auto serverIPLabel = GUILabel::CreateLabel(fontManager.GetFont("Arial"), ipAddress, 500, 8, 100, 22);
 	serverIPLabel->SetJustification(GUILabel::JUSTIFY_CENTER);
 	entryNode->AddChild(serverIPLabel);
 
-	GUICheckbox* favoritedCheckbox = GUICheckbox::CreateTemplatedCheckbox("Standard", 630, 4, 22, 22);
+	auto favoritedCheckbox = GUICheckbox::CreateTemplatedCheckbox("Standard", 630, 4, 22, 22);
 	favoritedCheckbox->SetChecked(favorited);
 	entryNode->AddChild(favoritedCheckbox);
 
@@ -33,9 +33,9 @@ void AddServer(const char* serverName, int clientCount, int clientMax, const cha
 
 void AddClient(const char* ipAddress)
 {
-	GUIObjectNode* entryNode = new GUIObjectNode;
+	auto entryNode = new GUIObjectNode;
 
-	GUILabel* clientIPLabel = GUILabel::CreateLabel(fontManager.GetFont("Arial"), ipAddress, 10, 8, 100, 22);
+	auto clientIPLabel = GUILabel::CreateLabel(fontManager.GetFont("Arial"), ipAddress, 10, 8, 100, 22);
 	clientIPLabel->SetJustification(GUILabel::JUSTIFY_LEFT);
 	entryNode->AddChild(clientIPLabel);
 	

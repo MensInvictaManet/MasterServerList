@@ -11,7 +11,7 @@ void EndServer(); // Have to reference it so we can mention it in StartServer
 
 void StartServer()
 {
-	const GUILabel* maxClientsLabel = (const GUILabel*)(serverMaxClientsDropdown->GetSelectedItem());
+	auto maxClientsLabel = static_cast<const GUILabel*>(serverMaxClientsDropdown->GetSelectedItem());
 	if (!serverNameEditBox->GetText().empty() && SERVER.Initialize(serverNameEditBox->GetText(), atoi(maxClientsLabel->GetText().c_str())))
 	{
 		// Send information to the MSL

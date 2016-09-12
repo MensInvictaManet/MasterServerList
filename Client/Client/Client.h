@@ -11,6 +11,12 @@ class Client
 public:
 	enum ClientState { CLIENT_STATE_UNINITIALIZED, CLIENT_STATE_DISCONNECTED, CLIENT_STATE_CONNECTED };
 
+	struct ChatString
+	{
+		std::string m_Name;
+		std::string m_Message;
+	};
+
 private:
 	struct ServerEntryData
 	{
@@ -23,7 +29,9 @@ private:
 	int m_ClientState;
 	int m_MSLSocket;
 	int m_ServerSocket;
+	std::string m_ServerIP;
 	std::vector<ServerEntryData> m_ServerEntryList;
+	std::vector<ChatString> m_ChatStringList;
 
 	std::string m_LocalName;
 	bool m_ChangedThisFrame;
@@ -36,26 +44,32 @@ public:
 		m_ClientState(CLIENT_STATE_UNINITIALIZED),
 		m_MSLSocket(-1),
 		m_ServerSocket(-1),
+		m_ServerIP(""),
 		m_LocalName("TestName"),
 		m_ChangedThisFrame(false)
 	{}
 
 	~Client() { Shutdown(); }
 
-	void RequestServerList();
+	void RequestServerList() const;
 	bool ConnectToServer(const char* ipAddress);
-	inline bool GetChangedThisFrame() const { return m_ChangedThisFrame; }
-	inline int GetClientState() const { return m_ClientState; }
-	inline const std::vector<ServerEntryData>& GetServerList() const { return m_ServerEntryList; }
+	bool GetChangedThisFrame() const { return m_ChangedThisFrame; }
+	int GetClientState() const { return m_ClientState; }
+	const std::vector<ServerEntryData>& GetServerList() const { return m_ServerEntryList; }
+	void ClearServerList() { m_ServerEntryList.clear(); }
+	void SetServerIP(const std::string& ipAddress) { m_ServerIP = ipAddress; }
+	const ChatString* GetChatString(int index) const { return (int(m_ChatStringList.size()) > index) ? &m_ChatStringList[index] : nullptr; }
+	int GetChatStringCount() const { return int(m_ChatStringList.size()); }
 
 	bool Initialize();
 	bool MainProcess();
+	void SendChatMessage(const std::string& chatString) const;
 	void Shutdown();
 };
 
-void Client::MSL_Messages()
+inline void Client::MSL_Messages()
 {
-	int messageSize = winsockWrapper.ReceiveMessagePacket(m_MSLSocket, 0, 0);
+	auto messageSize = winsockWrapper.ReceiveMessagePacket(m_MSLSocket, 0, 0);
 	if (messageSize == 0) return; // TODO: Disconnect
 	if (messageSize < 0) return;
 
@@ -66,7 +80,7 @@ void Client::MSL_Messages()
 			m_ServerEntryList.clear();
 			m_ChangedThisFrame = true;
 
-			std::string ipAddress = winsockWrapper.ConvertUINTtoIP(winsockWrapper.ReadUnsignedInt(0));
+			auto ipAddress = winsockWrapper.ConvertUINTtoIP(winsockWrapper.ReadUnsignedInt(0));
 			while (ipAddress.compare("0.0.0.0") != 0)
 			{
 				ServerEntryData newEntry;
@@ -89,23 +103,50 @@ void Client::MSL_Messages()
 			winsockWrapper.SendMessagePacket(m_MSLSocket, MSL_IP, MSL_PORT, 0);
 		}
 		break;
+
+	default:break;
 	}
 
 }
 
-void Client::Server_Messages()
+inline void Client::Server_Messages()
 {
+	auto messageSize = winsockWrapper.ReceiveMessagePacket(m_ServerSocket, 0, 0);
+	if (messageSize == 0) return; // TODO: Disconnect
+	if (messageSize < 0) return;
 
+	switch (winsockWrapper.ReadChar(0))
+	{
+	case 1: //  Client Ping Request
+		{
+			winsockWrapper.ClearBuffer(0);
+			winsockWrapper.WriteChar(1, 0);
+			winsockWrapper.SendMessagePacket(m_ServerSocket, m_ServerIP.c_str(), SERVER_PORT, 0);
+		}
+		break;
+
+	case 2:
+		{
+			ChatString newString;
+			newString.m_Name = winsockWrapper.ReadString(0);
+			newString.m_Message = winsockWrapper.ReadString(0);
+			m_ChatStringList.push_back(newString);
+			m_ChangedThisFrame = true;
+		}
+		break;
+
+	default:break;
+	}
 }
 
-void Client::RequestServerList()
+inline void Client::RequestServerList() const
 {
 	winsockWrapper.ClearBuffer(0);
 	winsockWrapper.WriteChar(0, 0);
 	winsockWrapper.SendMessagePacket(m_MSLSocket, MSL_IP, MSL_PORT, 0);
 }
 
-bool Client::ConnectToServer(const char* ipAddress)
+inline bool Client::ConnectToServer(const char* ipAddress)
 {
 	if (m_ClientState != CLIENT_STATE_DISCONNECTED) return false;
 
@@ -113,12 +154,18 @@ bool Client::ConnectToServer(const char* ipAddress)
 	m_ServerSocket = winsockWrapper.TCPConnect(ipAddress, SERVER_PORT, 1);
 	if (m_ServerSocket == -1) return false;
 
-	m_ServerEntryList.clear();
+	//  Disconnect from the Master Server
+	if (m_MSLSocket != -1)
+	{
+		winsockWrapper.CloseSocket(m_MSLSocket);
+		m_MSLSocket = -1;
+	}
+
 	m_ClientState = CLIENT_STATE_CONNECTED;
 	return true;
 }
 
-bool Client::Initialize()
+inline bool Client::Initialize()
 {
 	if (m_ClientState != CLIENT_STATE_UNINITIALIZED) return false;
 
@@ -131,8 +178,22 @@ bool Client::Initialize()
 	return true;
 }
 
-bool Client::MainProcess()
+inline void Client::SendChatMessage(const std::string& chatString) const
 {
+	if (chatString.empty()) return;
+	if (m_ClientState != CLIENT_STATE_CONNECTED) return;
+
+	winsockWrapper.ClearBuffer(0);
+	winsockWrapper.WriteChar(2, 0);
+	winsockWrapper.WriteString(m_LocalName.c_str(), 0);
+	winsockWrapper.WriteString(chatString.c_str(), 0);
+	winsockWrapper.SendMessagePacket(m_ServerSocket, m_ServerIP.c_str(), SERVER_PORT, 0);
+}
+
+inline bool Client::MainProcess()
+{
+	m_ChangedThisFrame = false;
+
 	switch (m_ClientState)
 	{
 	case CLIENT_STATE_DISCONNECTED:
@@ -150,7 +211,7 @@ bool Client::MainProcess()
 	}
 }
 
-void Client::Shutdown()
+inline void Client::Shutdown()
 {
 	if (m_ClientState == CLIENT_STATE_UNINITIALIZED) return;
 
@@ -168,4 +229,5 @@ void Client::Shutdown()
 
 	m_LocalName = "";
 	m_ChangedThisFrame = false;
+	m_ClientState = CLIENT_STATE_UNINITIALIZED;
 }
