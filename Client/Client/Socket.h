@@ -224,7 +224,7 @@ inline int Socket::sendmessage(const char *ip, int port, SocketBuffer *source)
 
 inline int Socket::receivetext(char*buf, int max)
 {
-	int len = (int)strlen(formatstr);
+	auto len = int(strlen(formatstr));
 	if ((max = recv(sockid, buf, max, MSG_PEEK)) != SOCKET_ERROR)
 	{
 		int i, ii;
@@ -241,8 +241,8 @@ inline int Socket::receivetext(char*buf, int max)
 inline int Socket::receivemessage(int len, SocketBuffer*destination, int length_specific)
 {
 	if (sockid<0) return -1;
-	int size = -1;
-	char* buff = NULL;
+	auto size = -1;
+	char* buff = nullptr;
 	if (udp)
 	{
 		size = 8195;
@@ -259,7 +259,7 @@ inline int Socket::receivemessage(int len, SocketBuffer*destination, int length_
 				if (size = recv(sockid, (char*)&length, 2, 0) == SOCKET_ERROR) { return -1; }
 				if (size = 0) { return 0; }
 			}
-			int buffer_size = length_specific != 0 ? length_specific : length;
+			auto buffer_size = length_specific != 0 ? length_specific : length;
 			buff = new char[buffer_size];
 			size = recv(sockid, buff, buffer_size, 0);
 		}
@@ -280,7 +280,7 @@ inline int Socket::receivemessage(int len, SocketBuffer*destination, int length_
 		destination->clear();
 		destination->addBuffer(buff, size);
 	}
-	if (buff != NULL) delete buff;
+	if (buff != nullptr) delete buff;
 	return size;
 }
 
@@ -288,7 +288,7 @@ inline int Socket::peekmessage(int size, SocketBuffer* destination) const
 {
 	if (sockid<0) return -1;
 	if (size == 0) size = 65536;
-	char *buff = new char[size];
+	auto buff = new char[size];
 	size = recvfrom(sockid, buff, size, MSG_PEEK, (SOCKADDR *)&SenderAddr, &SenderAddrSize);
 	if (size < 0)
 	{

@@ -38,12 +38,12 @@ public:
 	char*				readchars(int len, bool peek = false);
 	char*				readstring(bool peek = false);
 
-	int bytesleft();
+	int bytesleft() const;
 	void StreamSet(int pos);
 	void clear();
 	int addBuffer(char*, int);
 	int addBuffer(SocketBuffer*);
-	char operator[](int index);
+	char operator[](int index) const;
 };
 
 #define SIZEOF_CHAR sizeof(char)
@@ -59,7 +59,7 @@ char SocketBuffer::retval[20001];
 inline SocketBuffer::SocketBuffer()
 {
 	BuffSize = 30;
-	data = (char*)malloc(BuffSize);
+	data = static_cast<char*>(malloc(BuffSize));
 	count = 0;
 	readpos = 0;
 	writepos = 0;
@@ -75,7 +75,7 @@ inline void SocketBuffer::StreamWrite(void *in, int size)
 	if (writepos + size >= BuffSize)
 	{
 		BuffSize = writepos + size + 30;
-		if ((data = (char*)realloc(data, BuffSize)) == nullptr) return;
+		if ((data = static_cast<char*>(realloc(data, BuffSize))) == nullptr) return;
 	}
 	memcpy(data + writepos, in, size);
 	writepos += size;
@@ -135,27 +135,27 @@ inline int SocketBuffer::writedouble(double a)
 
 inline int SocketBuffer::writechars(char*str)
 {
-	int len = (int)strlen(str);
+	auto len = int(strlen(str));
 	StreamWrite(str, len);
 	return len;
 }
 
 inline int SocketBuffer::writechars(const char*str)
 {
-	int len = (int)strlen(str);
+	int len = int(strlen(str));
 	StreamWrite((void*)(str), len);
 	return len;
 }
 
 inline int SocketBuffer::writestring(char *str)
 {
-	int len = writechars(str);
+	auto len = writechars(str);
 	return len + writechar('\0');
 }
 
 inline int SocketBuffer::writestring(const char *str)
 {
-	int len = writechars(str);
+	auto len = writechars(str);
 	return len + writechar('\0');
 }
 
@@ -229,7 +229,7 @@ inline char* SocketBuffer::readstring(bool peek)
 	return retval;
 }
 
-inline int SocketBuffer::bytesleft()
+inline int SocketBuffer::bytesleft() const
 {
 	return count - readpos;
 }
@@ -252,7 +252,7 @@ inline void SocketBuffer::clear()
 	{
 		free(data);
 		BuffSize = 30;
-		data = (char*)malloc(BuffSize);
+		data = static_cast<char*>(malloc(BuffSize));
 	}
 	count = 0;
 	readpos = 0;
@@ -265,7 +265,7 @@ inline void SocketBuffer::StreamSet(int pos)
 	writepos = 0;
 }
 
-inline char SocketBuffer::operator [](int i)
+inline char SocketBuffer::operator [](int i) const
 {
 	return ((i < 0 || i >= count) ? '\0' : data[i]);
 }
