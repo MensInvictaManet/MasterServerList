@@ -85,7 +85,7 @@ inline bool Server::Initialize(std::string serverName, unsigned int maxClients)
 inline bool Server::MainProcess(void)
 {
 	if (!Initialized) return false;
-	//m_ChangedThisFrame = false;
+	m_ChangedThisFrame = false;
 
 	// Accept Incoming Connections
 	AcceptNewClients();
