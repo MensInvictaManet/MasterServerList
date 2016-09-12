@@ -214,20 +214,6 @@ inline void Server::Messages_Clients(void)
 			}
 			break;
 
-		case 3:
-			{
-				char NewString[100];
-				auto Name = winsockWrapper.ReadString(0);
-				char* Extra = " has entered the server.";
-				auto S = int(strlen(Name));
-				for (auto i = 0; Name[i] != 0; i += 1)		NewString[i] = Name[i];
-				for (auto i = S; Extra[i - S] != 0; i += 1)	NewString[i] = Extra[i - S];
-				S += int(strlen(Extra));
-				NewString[S] = 0;
-				SendChatString("", NewString);
-			}
-			break;
-
 		default:break;
 		}
 	}

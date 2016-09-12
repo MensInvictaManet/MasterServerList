@@ -129,7 +129,7 @@ inline bool WinsockWrapper::GetInternetConnected()
 inline unsigned int WinsockWrapper::ConvertIPtoUINT(const char* ipAddress)
 {
 	struct sockaddr_in sa;
-	auto retVal = inet_pton(AF_INET, ipAddress, &(sa.sin_addr));
+	inet_pton(AF_INET, ipAddress, &(sa.sin_addr));
 	return sa.sin_addr.S_un.S_addr;
 }
 
@@ -757,7 +757,7 @@ inline int WinsockWrapper::BinaryFileRead(HANDLE hwnd, int size, SocketBuffer* o
 	auto b = new char[size];
 	ReadFile(hwnd, b, size, &bytes_read, nullptr);
 	out->StreamWrite(b, bytes_read);
-	delete b;
+	delete [] b;
 	return int(bytes_read);
 }
 

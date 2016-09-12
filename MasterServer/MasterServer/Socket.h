@@ -20,11 +20,11 @@ public:
 	~Socket();
 	bool tcpconnect(const char* address, int port, int mode);
 	bool tcplisten(int port, int max, int mode);
-	Socket* tcpaccept(int mode);
+	Socket* tcpaccept(int mode) const;
 	std::string tcpip();
-	void setnagle(bool enabled);
-	bool tcpconnected();
-	int setsync(int mode);
+	void setnagle(bool enabled) const;
+	bool tcpconnected() const;
+	int setsync(int mode) const;
 	bool udpconnect(int port, int mode);
 	int sendmessage(const char* ip, int port, SocketBuffer* source);
 	int receivemessage(int len, SocketBuffer*destination, int length_specific = 0);
@@ -116,22 +116,22 @@ inline Socket::Socket() :
 
 inline Socket::~Socket()
 {
-	if (sockid<0) return;
+	if (sockid < 0) return;
 	shutdown(sockid, 1);
 	closesocket(sockid);
 }
 
-inline Socket* Socket::tcpaccept(int mode)
+inline Socket* Socket::tcpaccept(int mode) const
 {
-	if (sockid<0) return 0;
+	if (sockid < 0) return nullptr;
 	SOCKET sock2;
 	if ((sock2 = accept(sockid, (SOCKADDR *)&SenderAddr, &SenderAddrSize)) != INVALID_SOCKET)
 	{
-		Socket*sockit = new Socket(sock2);
+		auto sockit = new Socket(sock2);
 		if (mode >= 1)sockit->setsync(1);
 		return sockit;
 	}
-	return 0;
+	return nullptr;
 }
 
 inline std::string Socket::tcpip()
@@ -144,22 +144,22 @@ inline std::string Socket::tcpip()
 	return std::string(ipAddress);
 }
 
-inline void Socket::setnagle(bool enabled)
+inline void Socket::setnagle(bool enabled) const
 {
-	if (sockid<0) return;
+	if (sockid < 0) return;
 	setsockopt(sockid, IPPROTO_TCP, TCP_NODELAY, (char*)&enabled, sizeof(bool));
 }
 
-inline bool Socket::tcpconnected()
+inline bool Socket::tcpconnected() const 
 {
-	if (sockid<0) return false;
+	if (sockid < 0) return false;
 	char b;
 	if (recv(sockid, &b, 1, MSG_PEEK) == SOCKET_ERROR)
 		if (WSAGetLastError() != WSAEWOULDBLOCK) return false;
 	return true;
 }
 
-inline int Socket::setsync(int mode)
+inline int Socket::setsync(int mode) const 
 {
 	if (sockid < 0) return -1;
 	u_long i = mode;
@@ -192,7 +192,7 @@ inline int Socket::sendmessage(const char *ip, int port, SocketBuffer *source)
 	if (udp)
 	{
 		struct sockaddr_in sa;
-		auto retVal = inet_pton(AF_INET, ip, &(sa.sin_addr));
+		inet_pton(AF_INET, ip, &(sa.sin_addr)); //  TODO: Is this line even needed?
 
 		size = std::min(source->count, 8195);
 		addr.sin_family = AF_INET;
@@ -219,7 +219,7 @@ inline int Socket::sendmessage(const char *ip, int port, SocketBuffer *source)
 		else if (format == 2)
 			size = send(sockid, source->data, source->count, 0);
 	}
-	return ((size = SOCKET_ERROR) ? -WSAGetLastError() : size);
+	return ((size == SOCKET_ERROR) ? -WSAGetLastError() : size);
 }
 
 inline int Socket::receivetext(char*buf, int max)
@@ -240,7 +240,7 @@ inline int Socket::receivetext(char*buf, int max)
 }
 inline int Socket::receivemessage(int len, SocketBuffer*destination, int length_specific)
 {
-	if (sockid<0) return -1;
+	if (sockid < 0) return -1;
 	auto size = -1;
 	char* buff = nullptr;
 	if (udp)
@@ -256,8 +256,8 @@ inline int Socket::receivemessage(int len, SocketBuffer*destination, int length_
 			unsigned short length;
 			if (length_specific == 0)
 			{
-				if (size = recv(sockid, (char*)&length, 2, 0) == SOCKET_ERROR) { return -1; }
-				if (size = 0) { return 0; }
+				if ((size = recv(sockid, (char*)&length, 2, 0)) == SOCKET_ERROR) { return -1; }
+				if (size == 0) { return 0; }
 			}
 			auto buffer_size = length_specific != 0 ? length_specific : length;
 			buff = new char[buffer_size];
@@ -280,24 +280,24 @@ inline int Socket::receivemessage(int len, SocketBuffer*destination, int length_
 		destination->clear();
 		destination->addBuffer(buff, size);
 	}
-	if (buff != nullptr) delete buff;
+	if (buff != nullptr) delete [] buff;
 	return size;
 }
 
 inline int Socket::peekmessage(int size, SocketBuffer* destination) const
 {
-	if (sockid<0) return -1;
+	if (sockid < 0 ) return -1;
 	if (size == 0) size = 65536;
 	auto buff = new char[size];
 	size = recvfrom(sockid, buff, size, MSG_PEEK, (SOCKADDR *)&SenderAddr, &SenderAddrSize);
 	if (size < 0)
 	{
-		delete buff;
+		delete [] buff;
 		return -1;
 	}
 	destination->clear();
 	destination->addBuffer(buff, size);
-	delete buff;
+	delete [] buff;
 	return size;
 }
 

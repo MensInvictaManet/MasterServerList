@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Winsock2.h>
 #include <algorithm>
 
 class SocketBuffer
