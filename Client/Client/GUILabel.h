@@ -19,7 +19,6 @@ public:
 	void SetText(const std::string text) { m_Text = text; }
 	void SetJustification(int justify) { m_Justification = justify; }
 
-	void Input(int xOffset = 0, int yOffset = 0) override {};
 	void Render(int xOffset = 0, int yOffset = 0) override;
 
 private:

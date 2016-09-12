@@ -24,16 +24,24 @@ public:
 	void Input(int xOffset = 0, int yOffset = 0) override;
 	void Render(int xOffset = 0, int yOffset = 0) override;
 
-	inline void AddItem(GUIObjectNode* item) { m_ItemList.push_back(item); UpdateMover(); }
-	inline void ClearItems() { for (auto iter = m_ItemList.begin(); iter != m_ItemList.end(); ++iter) { guiManager.DestroyNode((*iter)); } m_ItemList.clear(); }
-	inline void SelectItem(unsigned int index) { SelectedIndex = std::min(index, m_ItemList.size() - 1); }
-	inline const GUIObjectNode* GetSelectedItem() const { return (SelectedIndex == -1) ? nullptr : m_ItemList[SelectedIndex]; }
+	void AddItem(GUIObjectNode* item) { m_ItemList.push_back(item); UpdateMover(m_FlowToBottom ? std::max(int(m_ItemList.size()) - ItemDisplayCount, 0) : -1); }
+	void ClearItems() { for (auto iter = m_ItemList.begin(); iter != m_ItemList.end(); ++iter) { guiManager.DestroyNode((*iter)); } m_ItemList.clear(); SelectedIndex = -1; }
+	void SelectItem(unsigned int index) { SelectedIndex = std::min(index, m_ItemList.size() - 1); }
+	const GUIObjectNode* GetSelectedItem() const { return (SelectedIndex == -1) ? nullptr : m_ItemList[SelectedIndex]; }
+	int GetSelectedIndex() const { return SelectedIndex; }
+	void SetSelectable(bool selectable) { m_Selectable = selectable; }
+	void SetSelectedIndex(int index) { SelectedIndex = index; }
+	void SetFlowToBottom(bool flowToBottom) { m_FlowToBottom = flowToBottom; }
+	unsigned int GetItemCount() const { return m_ItemList.size(); }
+	unsigned int GetItemDisplayCount() const { return ItemDisplayCount; }
 
 private:
 	GUIListBoxCallback	m_ItemClickCallback;
 
 	std::vector<GUIObjectNode*> m_ItemList;
+	bool m_Selectable;
 	int	SelectedIndex;
+	int m_FlowToBottom;
 	int MovementIndex;
 	int MoverHeight;
 	int MoverY;
@@ -71,7 +79,7 @@ private:
 	int ItemDisplayCount;
 	int Justification;
 
-	void UpdateMover(void);
+	void UpdateMover(int index = -1);
 };
 
 inline GUIListBox* GUIListBox::CreateListBox(const char* imageFile, int x, int y, int w, int h)
@@ -130,7 +138,9 @@ inline GUIListBox* GUIListBox::CreateTemplatedListBox(const char* listboxTemplat
 
 inline GUIListBox::GUIListBox(bool templated) :
 	m_ItemClickCallback(nullptr),
+	m_Selectable(true),
 	SelectedIndex(-1),
+	m_FlowToBottom(false),
 	MovementIndex(0),
 	MoverHeight(-1),
 	MoverY(-1),
@@ -179,6 +189,8 @@ inline GUIListBox::~GUIListBox()
 
 inline void GUIListBox::Input(int xOffset, int yOffset)
 {
+	if (m_SetToDestroy || !m_Visible) return;
+
 	auto leftButtonState = inputManager.GetMouseButtonLeft();
 	auto middleButtonState = inputManager.GetMouseButtonMiddle();
 	auto rightButtonState = inputManager.GetMouseButtonRight();
@@ -209,11 +221,12 @@ inline void GUIListBox::Input(int xOffset, int yOffset)
 	if (mx < x || mx > x + m_Width || my < y || my > y + m_Height) return;
 
 	//  If we're left of the directional buttons, assume we're clicking an entry in the list and find out which one
-	if (mx < x + DirectionalButtonsX)
+	if (m_Selectable && mx < x + DirectionalButtonsX)
 	{
-		int newSelectedIndex = (int(my) - y - TextureTopSide->getHeight()) / (EntryHeight + SpaceBetweenEntries) + MovementIndex;
+		auto newSelectedIndex = (int(my) - y - TextureTopSide->getHeight()) / (EntryHeight + SpaceBetweenEntries) + MovementIndex;
 		if (newSelectedIndex >= MovementIndex && newSelectedIndex < int(m_ItemList.size()) && newSelectedIndex < MovementIndex + int(ItemDisplayCount))
 		{
+			inputManager.TakeMouseButtonLeft();
 			if (SelectedIndex != newSelectedIndex && m_ItemClickCallback != nullptr) m_ItemClickCallback(this);
 			SelectedIndex = newSelectedIndex;
 			return;
@@ -226,6 +239,7 @@ inline void GUIListBox::Input(int xOffset, int yOffset)
 		//  If we're clicking the up button, move the movement index up one if possible
 		if ((mx < x + DirectionalButtonsX + UpButtonW) && (my > y + ContentY) && (my < y + ContentY + UpButtonH))
 		{
+			inputManager.TakeMouseButtonLeft();
 			if (MovementIndex > 0) MovementIndex -= 1;
 			UpdateMover();
 			m_LastClickTime = gameSeconds;
@@ -235,6 +249,7 @@ inline void GUIListBox::Input(int xOffset, int yOffset)
 		//  If we're clicking the down button, move the movement index down one if possible
 		if ((mx < x + DirectionalButtonsX + DownButtonW) && (my > y + m_Height - ContentY - DownButtonH) && (my < y + m_Height - ContentY))
 		{
+			inputManager.TakeMouseButtonLeft();
 			if (MovementIndex < int(m_ItemList.size() - ItemDisplayCount)) MovementIndex += 1;
 			UpdateMover();
 			m_LastClickTime = gameSeconds;
@@ -245,6 +260,7 @@ inline void GUIListBox::Input(int xOffset, int yOffset)
 	//  If we're clicking inside of the mover, keep track of our click so we can drag it
 	if ((leftButtonState == MOUSE_BUTTON_PRESSED) && (mx > x + DirectionalButtonsX) && (mx < x + DirectionalButtonsX + BarColumnW) && (my > y + ContentY + UpButtonH + MoverY) && (my < y + ContentY + UpButtonH + MoverY + MoverHeight))
 	{
+		inputManager.TakeMouseButtonLeft();
 		m_Clicked = true;
 		ClickedY = my;
 	}
@@ -299,18 +315,18 @@ inline void GUIListBox::Render(int xOffset, int yOffset)
 		}
 
 		//  Render the items contained within
-		for (int i = MovementIndex; i < int(m_ItemList.size()) && i < MovementIndex + ItemDisplayCount; ++i)
+		for (auto i = MovementIndex; i < int(m_ItemList.size()) && i < MovementIndex + ItemDisplayCount; ++i)
 		{
 			m_ItemList[i]->Render(x, y + ((EntryHeight + SpaceBetweenEntries) * (i - MovementIndex)));
 		}
 
-		for (int i = 0; i < int(m_ItemList.size()) && i < ItemDisplayCount ; ++i)
+		for (auto i = 0; i < int(m_ItemList.size()) && i < ItemDisplayCount ; ++i)
 		{
 			//m_ItemList[i]->Render(x, y + i * (EntryHeight + SpaceBetweenEntries));
 		}
 
 		//  Render the selector if an item is selected
-		if (SelectedIndex != -1 && (SelectedIndex >= MovementIndex) && (SelectedIndex < MovementIndex + int(ItemDisplayCount)))
+		if (m_Selectable && SelectedIndex != -1 && (SelectedIndex >= MovementIndex) && (SelectedIndex < MovementIndex + int(ItemDisplayCount)))
 		{
 			auto width = (renderScrollButtons ? (DirectionalButtonsX - TextureLeftSide->getWidth()) : m_Width - TextureLeftSide->getWidth() - TextureRightSide->getWidth()) - 2;
 			TextureSelector->RenderTexture(x + TextureLeftSide->getWidth(), y + TextureTopSide->getHeight() + (EntryHeight + SpaceBetweenEntries) * (SelectedIndex - MovementIndex), width, EntryHeight);
@@ -321,12 +337,14 @@ inline void GUIListBox::Render(int xOffset, int yOffset)
 	for (auto iter = m_Children.begin(); iter != m_Children.end(); ++iter) (*iter)->Render(x, y);
 }
 
-void GUIListBox::UpdateMover()
+inline void GUIListBox::UpdateMover(int indexOverride)
 {
+	if (indexOverride != -1) MovementIndex = std::max(std::min(indexOverride, int(m_ItemList.size()) - ItemDisplayCount), 0);
+
 	auto mover_size_percent = float(ItemDisplayCount) / float(m_ItemList.size());
-	MoverHeight = (unsigned int)((float(m_Height - ContentY - DownButtonH) - (ContentY + UpButtonH)) * mover_size_percent);
+	MoverHeight = static_cast<unsigned int>((float(m_Height - ContentY - DownButtonH) - (ContentY + UpButtonH)) * mover_size_percent);
 
 	auto mover_position_percent_delta = float(1) / float(m_ItemList.size());
-	MoverYDelta = (unsigned int)((float(m_Height - ContentY - DownButtonH) - (ContentY + UpButtonH)) * mover_position_percent_delta);
-	MoverY = (unsigned int)(float(MoverYDelta) * float(MovementIndex));
+	MoverYDelta = static_cast<unsigned int>((float(m_Height - ContentY - DownButtonH) - (ContentY + UpButtonH)) * mover_position_percent_delta);
+	MoverY = static_cast<unsigned int>(float(MoverYDelta) * float(MovementIndex));
 }

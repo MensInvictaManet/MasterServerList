@@ -98,6 +98,8 @@ inline GUIMoveable::~GUIMoveable()
 
 inline void GUIMoveable::Input(int xOffset, int yOffset)
 {
+	if (m_SetToDestroy || !m_Visible) return;
+
 	auto leftButtonState = inputManager.GetMouseButtonLeft();
 	auto x = inputManager.GetMouseX();
 	auto y = inputManager.GetMouseY();
@@ -109,6 +111,7 @@ inline void GUIMoveable::Input(int xOffset, int yOffset)
 		{
 			if (leftButtonState == MOUSE_BUTTON_PRESSED)
 			{
+				inputManager.TakeMouseButtonLeft();
 				m_Grabbed = true;
 				m_GrabLastX = x;
 				m_GrabLastY = y;

@@ -118,6 +118,8 @@ inline GUIButton::~GUIButton()
 
 inline void GUIButton::Input(int xOffset, int yOffset)
 {
+	if (m_SetToDestroy || !m_Visible) return;
+
 	auto leftButtonState = inputManager.GetMouseButtonLeft();
 	auto middleButtonState = inputManager.GetMouseButtonMiddle();
 	auto rightButtonState = inputManager.GetMouseButtonRight();
@@ -127,11 +129,11 @@ inline void GUIButton::Input(int xOffset, int yOffset)
 	if (leftButtonState == MOUSE_BUTTON_UNPRESSED) m_Pressed = false;
 	if ((x > xOffset + m_X) && (x < xOffset + m_X + m_Width) && (y > yOffset + m_Y) && (y < yOffset + m_Y + m_Height))
 	{
-		if (leftButtonState == MOUSE_BUTTON_PRESSED)  m_LeftClickCallback(this);
-		if (middleButtonState == MOUSE_BUTTON_PRESSED) m_MiddleClickCallback(this);
-		if (rightButtonState == MOUSE_BUTTON_PRESSED) m_RightClickCallback(this);
-
 		if (leftButtonState == MOUSE_BUTTON_PRESSED) m_Pressed = true;
+
+		if (leftButtonState == MOUSE_BUTTON_PRESSED) { inputManager.TakeMouseButtonLeft(); m_LeftClickCallback(this); }
+		if (middleButtonState == MOUSE_BUTTON_PRESSED) { inputManager.TakeMouseButtonMiddle(); m_MiddleClickCallback(this); }
+		if (rightButtonState == MOUSE_BUTTON_PRESSED) { inputManager.TakeMouseButtonRight(); m_RightClickCallback(this); }
 	}
 	else m_Pressed = false;
 

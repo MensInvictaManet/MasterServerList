@@ -127,6 +127,8 @@ inline GUIDropDown::~GUIDropDown()
 
 inline void GUIDropDown::Input(int xOffset, int yOffset)
 {
+	if (m_SetToDestroy || !m_Visible) return;
+
 	auto leftButtonState = inputManager.GetMouseButtonLeft();
 	auto x = m_X + xOffset;
 	auto y = m_Y + yOffset;
@@ -138,6 +140,7 @@ inline void GUIDropDown::Input(int xOffset, int yOffset)
 		//  If we click the drop-down button, drop it down and update the expanded height for rendering
 		if ((leftButtonState == MOUSE_BUTTON_PRESSED) && (mx > x + DropDownX) && (mx < x + DropDownX + int(DropDownW)) && (my > y + DropDownY) && (my < y + DropDownY + int(DropDownH)))
 		{
+			inputManager.TakeMouseButtonLeft();
 			m_Clicked = true;
 			UpdateExpandedHeight();
 			return;
@@ -148,7 +151,7 @@ inline void GUIDropDown::Input(int xOffset, int yOffset)
 		//  If we are inside of the drop-down box, select an index based on height
 		if ((mx > x) && (mx < x + m_Width) && (my > y + m_Height) && (my < y + int(ExpandedHeight)))
 		{
-			SelectedIndex = (unsigned int)((my - y - m_Height) / m_Height);
+			SelectedIndex = static_cast<unsigned int>((my - y - m_Height) / m_Height);
 		}
 
 		//  If we click anywhere, close the drop-down box

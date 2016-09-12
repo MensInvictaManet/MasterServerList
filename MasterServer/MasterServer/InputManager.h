@@ -7,6 +7,7 @@ enum MouseButtonState
 {
 	MOUSE_BUTTON_UNPRESSED,
 	MOUSE_BUTTON_PRESSED,
+	MOUSE_BUTTON_PRESSED_TAKEN,
 	MOUSE_BUTTON_HELD
 };
 
@@ -22,6 +23,9 @@ public:
 	MouseButtonState GetMouseButtonLeft() const { return m_MouseButtonLeft; }
 	MouseButtonState GetMouseButtonMiddle() const { return m_MouseButtonMiddle; }
 	MouseButtonState GetMouseButtonRight() const { return m_MouseButtonRight; }
+	void TakeMouseButtonLeft() { if (m_MouseButtonLeft == MOUSE_BUTTON_PRESSED) m_MouseButtonLeft = MOUSE_BUTTON_PRESSED_TAKEN; }
+	void TakeMouseButtonMiddle() { if (m_MouseButtonMiddle == MOUSE_BUTTON_PRESSED) m_MouseButtonMiddle = MOUSE_BUTTON_PRESSED_TAKEN; }
+	void TakeMouseButtonRight() { if (m_MouseButtonRight == MOUSE_BUTTON_PRESSED) m_MouseButtonRight = MOUSE_BUTTON_PRESSED_TAKEN; }
 	bool GetKeyDown(const Uint8& sdlKey) const { return (m_KeyStates != nullptr) ? (m_KeyStates[sdlKey] != 0) : false; }
 	bool GetBackspace() const { return m_KeyStates[SDL_SCANCODE_BACKSPACE] != 0; }
 	const std::string& GetKeyboardString() const { return m_KeyboardString; }

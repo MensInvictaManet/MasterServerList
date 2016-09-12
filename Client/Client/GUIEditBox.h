@@ -18,7 +18,7 @@ public:
 
 	inline void SetFont(const Font* font) { m_Font = font; }
 	inline void SetText(const std::string text) { m_Text = text; }
-	inline const std::string GetText() const { return m_Text; }
+	inline std::string GetText() const { return m_Text; }
 
 	void Input(int xOffset = 0, int yOffset = 0) override;
 	void Render(int xOffset = 0, int yOffset = 0) override;
@@ -110,6 +110,8 @@ inline GUIEditBox::~GUIEditBox()
 
 inline void GUIEditBox::Input(int xOffset, int yOffset)
 {
+	if (m_SetToDestroy || !m_Visible) return;
+
 	auto leftButtonState = inputManager.GetMouseButtonLeft();
 	auto x = inputManager.GetMouseX();
 	auto y = inputManager.GetMouseY();
@@ -125,7 +127,11 @@ inline void GUIEditBox::Input(int xOffset, int yOffset)
 		else m_Text += inputManager.GetKeyboardString();
 	}
 
-	if (leftButtonState == MOUSE_BUTTON_PRESSED) m_Selected = ((x > xOffset + m_X) && (x < xOffset + m_X + m_Width) && (y > yOffset + m_Y) && (y < yOffset + m_Y + m_Height));
+	if (leftButtonState == MOUSE_BUTTON_PRESSED && ((x > xOffset + m_X) && (x < xOffset + m_X + m_Width) && (y > yOffset + m_Y) && (y < yOffset + m_Y + m_Height)))
+	{
+		inputManager.TakeMouseButtonLeft();
+		m_Selected = true;
+	}
 
 	//  Take base node input
 	GUIObjectNode::Input(xOffset, yOffset);

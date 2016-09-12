@@ -126,6 +126,8 @@ inline void GUICheckbox::SetChecked(bool checked)
 
 inline void GUICheckbox::Input(int xOffset, int yOffset)
 {
+	if (m_SetToDestroy || !m_Visible) return;
+
 	auto leftButtonState = inputManager.GetMouseButtonLeft();
 	auto middleButtonState = inputManager.GetMouseButtonMiddle();
 	auto rightButtonState = inputManager.GetMouseButtonRight();
@@ -134,7 +136,11 @@ inline void GUICheckbox::Input(int xOffset, int yOffset)
 
 	if ((x > xOffset + m_X) && (x < xOffset + m_X + m_Width) && (y > yOffset + m_Y) && (y < yOffset + m_Y + m_Height))
 	{
-		if (leftButtonState == MOUSE_BUTTON_PRESSED) ToggleCheck();
+		if (leftButtonState == MOUSE_BUTTON_PRESSED)
+		{
+			inputManager.TakeMouseButtonLeft();
+			ToggleCheck();
+		}
 	}
 
 	//  Take base node input

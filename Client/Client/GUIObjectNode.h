@@ -28,6 +28,11 @@ public:
 	void SetTextureID(int textureID) { m_TextureID = textureID; }
 	void SetVisible(bool visible) { m_Visible = visible; }
 
+	int GetX() const { return m_X; }
+	int GetY() const { return m_Y; }
+	int GetWidth() const { return m_Width; }
+	int GetHeight() const { return m_Height; }
+
 	void AddChild(GUIObjectNode* child);
 	void RemoveChild(GUIObjectNode* child);
 	
@@ -65,7 +70,7 @@ inline GUIObjectNode::GUIObjectNode() :
 
 inline void GUIObjectNode::Input(int xOffset, int yOffset)
 {
-	if (m_SetToDestroy) return;
+	if (m_SetToDestroy || !m_Visible) return;
 
 	//  Pass the input call to all children
 	for (auto iter = m_Children.begin(); iter != m_Children.end(); ++iter) (*iter)->Input(xOffset + m_X, yOffset + m_Y);
