@@ -8,6 +8,7 @@ GUIListBox* serverListBox;
 GUIButton* serverListRefreshButton;
 GUIButton* serverListPickButton;
 GUIListBox* serverChatListBox;
+GUILabel* inputNameLabel;
 GUIEditBox* serverChatMessageEditBox;
 GUIButton* serverSendMessageButton;
 GUIButton* serverDisconnectButton;
@@ -19,6 +20,7 @@ void DisconnectFromServer()
 	CLIENT.Initialize();
 
 	//  Hide the Server Chat UI
+	inputNameLabel->SetVisible(false);
 	serverChatListBox->SetVisible(false);
 	serverChatMessageEditBox->SetVisible(false);
 	serverSendMessageButton->SetVisible(false);
@@ -50,7 +52,8 @@ void AttemptToConnect()
 	CLIENT.ClearServerList();
 
 	//  Show the Server Chat UI
-	serverChatListBox->SetVisible(true);
+	inputNameLabel->SetVisible(true);
+	serverChatListBox->SetVisible(false);
 	serverChatMessageEditBox->SetVisible(true);
 	serverSendMessageButton->SetVisible(true);
 	serverDisconnectButton->SetVisible(true);
@@ -85,6 +88,10 @@ void CreateProgramData()
 	guiManager.GetBaseNode()->AddChild(serverListPickButton);
 
 	//  Create the Server Chat UI but make it invisible
+	inputNameLabel = GUILabel::CreateLabel(fontManager.GetFont("Arial"), "Input a name and hit Send Message to begin", 12, 700, 200, 22);
+	inputNameLabel->SetVisible(false);
+	guiManager.GetBaseNode()->AddChild(inputNameLabel);
+
 	serverChatListBox = GUIListBox::CreateTemplatedListBox("Standard", 12, 40, 1000, 684, 980, 4, 16, 16, 16, 16, 16, 22, 2);
 	serverChatListBox->SetSelectable(false);
 	serverChatListBox->SetVisible(false);
@@ -99,7 +106,17 @@ void CreateProgramData()
 	serverSendMessageButton = GUIButton::CreateTemplatedButton("Standard", 588, 726, 200, 30);
 	serverSendMessageButton->SetFont(fontManager.GetFont("Arial"));
 	serverSendMessageButton->SetText("Send Message");
-	serverSendMessageButton->SetLeftClickCallback([=](GUIObjectNode*) { CLIENT.SendChatMessage(serverChatMessageEditBox->GetText()); serverChatMessageEditBox->SetText(""); });
+	serverSendMessageButton->SetLeftClickCallback([=](GUIObjectNode*)
+	{
+		if (CLIENT.GetLocalName().compare("") == 0)
+		{
+			CLIENT.SetLocalName(serverChatMessageEditBox->GetText());
+			inputNameLabel->SetVisible(false);
+			serverChatListBox->SetVisible(true);
+		}
+		else CLIENT.SendChatMessage(serverChatMessageEditBox->GetText());
+		serverChatMessageEditBox->SetText("");
+	});
 	serverSendMessageButton->SetVisible(false);
 	guiManager.GetBaseNode()->AddChild(serverSendMessageButton);
 

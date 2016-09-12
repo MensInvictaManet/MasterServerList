@@ -45,7 +45,7 @@ public:
 		m_MSLSocket(-1),
 		m_ServerSocket(-1),
 		m_ServerIP(""),
-		m_LocalName("TestName"),
+		m_LocalName(""),
 		m_ChangedThisFrame(false)
 	{}
 
@@ -60,6 +60,8 @@ public:
 	void SetServerIP(const std::string& ipAddress) { m_ServerIP = ipAddress; }
 	const ChatString* GetChatString(int index) const { return (int(m_ChatStringList.size()) > index) ? &m_ChatStringList[index] : nullptr; }
 	int GetChatStringCount() const { return int(m_ChatStringList.size()); }
+	void SetLocalName(std::string localName) { m_LocalName = localName; }
+	inline std::string GetLocalName() const { return m_LocalName; }
 
 	bool Initialize();
 	bool MainProcess();
