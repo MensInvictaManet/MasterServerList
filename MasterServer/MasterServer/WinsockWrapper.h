@@ -105,7 +105,7 @@ public:
 private:
 	static HANDLE BinaryOpenFile(char* filename, int mode);
 	static bool BinaryCloseFile(HANDLE hwnd);
-	static int BinaryFileWrite(HANDLE hwnd, SocketBuffer* data);
+	static int BinaryFileWrite(HANDLE hwnd, SocketBuffer* dataBuffer);
 	static int BinaryFileRead(HANDLE hwnd, int size, SocketBuffer* out);
 	static int BinaryGetPosition(HANDLE hwnd);
 	static int BinarySetPosition(HANDLE hwnd, int offset);
@@ -348,7 +348,7 @@ inline std::string WinsockWrapper::GetMyHostIP(char* hostName)
 inline int WinsockWrapper::GetSocketID(int socketID)
 {
 	auto socket = m_SocketList[socketID];
-	return ((socket == nullptr) ? -1 : int(socket->sockid));
+	return ((socket == nullptr) ? -1 : int(socket->m_SocketID));
 }
 
 inline std::string WinsockWrapper::GetExteriorIP(int socketID)
@@ -474,7 +474,7 @@ inline int WinsockWrapper::GetBufferPosition(bool readWrite, int bufferID)
 {
 	auto buffer = m_BufferList[bufferID];
 	if (buffer == nullptr) return 0;
-	return (readWrite ? buffer->readpos : buffer->writepos);
+	return (readWrite ? buffer->m_ReadPosition : buffer->m_WritePosition);
 }
 
 inline int WinsockWrapper::ClearBuffer(int bufferID)
@@ -488,15 +488,15 @@ inline int WinsockWrapper::ClearBuffer(int bufferID)
 inline int WinsockWrapper::GetBufferSize(int bufferID)
 {
 	auto buffer = m_BufferList[bufferID];
-	return ((buffer == nullptr) ? 0 : buffer->count);
+	return ((buffer == nullptr) ? 0 : buffer->m_BufferUtilizedCount);
 }
 
 inline int WinsockWrapper::SetBufferPosition(int pos, int bufferID)
 {
 	auto buffer = m_BufferList[bufferID];
 	if (buffer == nullptr) return 0;
-	buffer->readpos = pos;
-	buffer->writepos = pos;
+	buffer->m_ReadPosition = pos;
+	buffer->m_WritePosition = pos;
 	return pos;
 }
 
@@ -538,7 +538,7 @@ inline bool WinsockWrapper::CopyBuffer(int destinationID, int start, int len, in
 	if (destination == nullptr) return false;
 	auto source = m_BufferList[sourceID];
 	if (source == nullptr) return false;
-	destination->addBuffer(source->data + start, len);
+	destination->addBuffer(source->m_BufferData + start, len);
 	return true;
 }
 
@@ -564,7 +564,7 @@ inline const char* WinsockWrapper::GetStringMD5(char* str)
 inline const char* WinsockWrapper::GetBufferMD5(int bufferID) const
 {
 	auto buffer = m_BufferList[bufferID];
-	return MD5(buffer->data).hexdigest().c_str();
+	return MD5(buffer->m_BufferData).hexdigest().c_str();
 }
 
 inline bool WinsockWrapper::EncryptBuffer(char* pass, int bufferID)
@@ -573,8 +573,8 @@ inline bool WinsockWrapper::EncryptBuffer(char* pass, int bufferID)
 	if (buffer == nullptr) return false;
 
 
-	auto *inp = buffer->data;
-	unsigned int inplen = buffer->count;
+	auto *inp = buffer->m_BufferData;
+	unsigned int inplen = buffer->m_BufferUtilizedCount;
 	char KeyBox[257];
 	auto keylen = std::min(int(strlen(pass)), 256);
 	if (keylen <= 0) return false;
@@ -610,14 +610,14 @@ inline unsigned int WinsockWrapper::GetBufferAdler32(int bufferID)
 	auto buffer = m_BufferList[bufferID];
 	if (buffer == nullptr) return 0;
 
-	auto data = buffer->data;
-	unsigned int len = buffer->count;
+	auto bufferData = buffer->m_BufferData;
+	unsigned int len = buffer->m_BufferUtilizedCount;
 	unsigned int a = 1, b = 0;
 	while (len) {
 		auto tlen = len > 5550 ? 5550 : len;
 		len -= tlen;
 		do {
-			a += *data++;
+			a += *bufferData++;
 			b += a;
 		} while (--tlen);
 		a = (a & 0xffff) + (a >> 16) * (65536 - 65521);
@@ -744,10 +744,10 @@ inline bool WinsockWrapper::BinaryCloseFile(HANDLE hwnd)
 	return (CloseHandle(hwnd) != 0);
 }
 
-inline int WinsockWrapper::BinaryFileWrite(HANDLE hwnd, SocketBuffer* data)
+inline int WinsockWrapper::BinaryFileWrite(HANDLE hwnd, SocketBuffer* dataBuffer)
 {
 	DWORD bytes_written;
-	WriteFile(hwnd, data->data + data->readpos, data->count - data->readpos, &bytes_written, nullptr);
+	WriteFile(hwnd, dataBuffer->m_BufferData + dataBuffer->m_ReadPosition, dataBuffer->m_BufferUtilizedCount - dataBuffer->m_ReadPosition, &bytes_written, nullptr);
 	return int(bytes_written);
 }
 

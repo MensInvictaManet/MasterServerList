@@ -2,17 +2,19 @@
 
 #include <algorithm>
 
+#define RETURNVAL_BUFFER_SIZE 20000
+
 class SocketBuffer
 {
-	static char retval[20001];
+	static char m_ReturnValueBuffer[RETURNVAL_BUFFER_SIZE + 1];
 public:
-	char* data;
-	int BuffSize;
-	int readpos;
-	int writepos;
+	char* m_BufferData;
+	int m_BufferSize;
+	int m_ReadPosition;
+	int m_WritePosition;
+	int m_BufferUtilizedCount;
 	void StreamWrite(void *in, int size);
 	void StreamRead(void* out, int size, bool peek);
-	int count;
 	SocketBuffer();
 	~SocketBuffer();
 	int 				writechar(unsigned char a);
@@ -27,17 +29,17 @@ public:
 	int 				writestring(char*str);
 	int 				writestring(const char*str);
 
-	unsigned char	readchar(bool peek = false);
+	unsigned char		readchar(bool peek = false);
 	short				readshort(bool peek = false);
-	unsigned short	readushort(bool peek = false);
-	int				readint(bool peek = false);
-	unsigned int	readuint(bool peek = false);
+	unsigned short		readushort(bool peek = false);
+	int					readint(bool peek = false);
+	unsigned int		readuint(bool peek = false);
 	float				readfloat(bool peek = false);
-	double			readdouble(bool peek = false);
+	double				readdouble(bool peek = false);
 	char*				readchars(int len, bool peek = false);
 	char*				readstring(bool peek = false);
 
-	int bytesleft() const;
+	int bytesleft() const { return m_BufferUtilizedCount - m_ReadPosition; }
 	void StreamSet(int pos);
 	void clear();
 	int addBuffer(char*, int);
@@ -53,43 +55,43 @@ public:
 #define SIZEOF_FLOT sizeof(float)
 #define SIZEOF_DOUB sizeof(double)
 
-char SocketBuffer::retval[20001];
+char SocketBuffer::m_ReturnValueBuffer[RETURNVAL_BUFFER_SIZE + 1];
 
 inline SocketBuffer::SocketBuffer()
 {
-	BuffSize = 30;
-	data = static_cast<char*>(malloc(BuffSize));
-	count = 0;
-	readpos = 0;
-	writepos = 0;
+	m_BufferSize = 30;
+	m_BufferData = static_cast<char*>(malloc(m_BufferSize));
+	m_BufferUtilizedCount = 0;
+	m_ReadPosition = 0;
+	m_WritePosition = 0;
 }
 
 inline SocketBuffer::~SocketBuffer()
 {
-	if (data != nullptr) free(data);
+	if (m_BufferData != nullptr) free(m_BufferData);
 }
 
 inline void SocketBuffer::StreamWrite(void *in, int size)
 {
-	if (writepos + size >= BuffSize)
+	if (m_WritePosition + size >= m_BufferSize)
 	{
-		BuffSize = writepos + size + 30;
-		if ((data = static_cast<char*>(realloc(data, BuffSize))) == nullptr) return;
+		m_BufferSize = m_WritePosition + size + 30;
+		if ((m_BufferData = static_cast<char*>(realloc(m_BufferData, m_BufferSize))) == nullptr) return;
 	}
-	memcpy(data + writepos, in, size);
-	writepos += size;
-	if (writepos > count) count = writepos;
+	memcpy(m_BufferData + m_WritePosition, in, size);
+	m_WritePosition += size;
+	if (m_WritePosition > m_BufferUtilizedCount) m_BufferUtilizedCount = m_WritePosition;
 }
 
 inline void SocketBuffer::StreamRead(void* out, int size, bool peek)
 {
-	if (readpos + size > count) size = count - readpos;
+	if (m_ReadPosition + size > m_BufferUtilizedCount) size = m_BufferUtilizedCount - m_ReadPosition;
 	if (size <= 0) return;
-	memcpy(out, data + readpos, size);
+	memcpy(out, m_BufferData + m_ReadPosition, size);
 
 	if (!peek)
 	{
-		readpos += size;
+		m_ReadPosition += size;
 	}
 }
 
@@ -210,61 +212,56 @@ inline char* SocketBuffer::readchars(int len, bool peek)
 {
 
 	if (len < 0) return nullptr;
-	StreamRead(&retval, len, peek);
-	retval[len] = '\0';
-	return retval;
+	StreamRead(&m_ReturnValueBuffer, len, peek);
+	m_ReturnValueBuffer[len] = '\0';
+	return m_ReturnValueBuffer;
 }
 
 inline char* SocketBuffer::readstring(bool peek)
 {
 	int i;
-	for (i = readpos; i < count; i++)
-		if (data[i] == '\0') break;
+	for (i = m_ReadPosition; i < m_BufferUtilizedCount; i++)
+		if (m_BufferData[i] == '\0') break;
 
-	if (i == count) return nullptr;
-	i -= readpos;
-	i = std::min(20000, i);
-	StreamRead(&retval, i + 1, peek);
-	return retval;
-}
-
-inline int SocketBuffer::bytesleft() const
-{
-	return count - readpos;
+	if (i == m_BufferUtilizedCount) return nullptr;
+	i -= m_ReadPosition;
+	i = std::min(RETURNVAL_BUFFER_SIZE, i);
+	StreamRead(&m_ReturnValueBuffer, i + 1, peek);
+	return m_ReturnValueBuffer;
 }
 
 inline int SocketBuffer::addBuffer(SocketBuffer *buffer)
 {
-	StreamWrite(buffer->data, buffer->count);
-	return buffer->count;
+	StreamWrite(buffer->m_BufferData, buffer->m_BufferUtilizedCount);
+	return buffer->m_BufferUtilizedCount;
 }
 
-inline int SocketBuffer::addBuffer(char *data, int len)
+inline int SocketBuffer::addBuffer(char *m_BufferData, int len)
 {
-	StreamWrite(data, len);
+	StreamWrite(m_BufferData, len);
 	return len;
 }
 
 inline void SocketBuffer::clear()
 {
-	if (BuffSize > 30)
+	if (m_BufferSize > 30)
 	{
-		free(data);
-		BuffSize = 30;
-		data = static_cast<char*>(malloc(BuffSize));
+		free(m_BufferData);
+		m_BufferSize = 30;
+		m_BufferData = static_cast<char*>(malloc(m_BufferSize));
 	}
-	count = 0;
-	readpos = 0;
-	writepos = 0;
+	m_BufferUtilizedCount = 0;
+	m_ReadPosition = 0;
+	m_WritePosition = 0;
 }
 
 inline void SocketBuffer::StreamSet(int pos)
 {
-	readpos = 0;
-	writepos = 0;
+	m_ReadPosition = 0;
+	m_WritePosition = 0;
 }
 
 inline char SocketBuffer::operator [](int i) const
 {
-	return ((i < 0 || i >= count) ? '\0' : data[i]);
+	return ((i < 0 || i >= m_BufferUtilizedCount) ? '\0' : m_BufferData[i]);
 }
