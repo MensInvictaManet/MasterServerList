@@ -45,7 +45,7 @@ public:
 	bool MainProcess(void);
 	void Shutdown(void);
 
-	bool Messages_MSL(void) const;
+	bool Messages_MSL(void);
 
 	void AddClient(int socketID, std::string IP);
 	void RemoveClient(int index);
@@ -85,7 +85,6 @@ inline bool Server::Initialize(std::string serverName, unsigned int maxClients)
 inline bool Server::MainProcess(void)
 {
 	if (!Initialized) return false;
-	m_ChangedThisFrame = false;
 
 	// Accept Incoming Connections
 	AcceptNewClients();
@@ -114,7 +113,7 @@ inline void Server::Shutdown(void)
 	m_ChangedThisFrame = false;
 }
 
-inline bool Server::Messages_MSL(void) const
+inline bool Server::Messages_MSL(void)
 {
 	//  If we've changed anything, send the server data to MSL to be updated
 	if (m_ChangedThisFrame)
@@ -125,6 +124,7 @@ inline bool Server::Messages_MSL(void) const
 		winsockWrapper.WriteUnsignedInt(static_cast<unsigned int>(m_ClientSocketDataList.size()), 0);
 		winsockWrapper.WriteUnsignedInt(m_ClientMax, 0);
 		winsockWrapper.SendMessagePacket(MSLSocket, MSL_IP, MSL_PORT, 0);
+		m_ChangedThisFrame = false;
 	}
 
 	auto MessageBuffer = winsockWrapper.ReceiveMessagePacket(MSLSocket, 0, 0);
