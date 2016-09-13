@@ -209,7 +209,7 @@ inline int WindowManager::CreateNewWindow(const char* title, int x, int y, int w
 
 	//  (Temporarily) swap to the new window as current to set VSYNC
 	SDL_GL_MakeCurrent(m_WindowList[index]->m_Window, m_WindowList[index]->m_Context);
-	if (SDL_GL_SetSwapInterval(1) < 0)
+	if (vsync && (SDL_GL_SetSwapInterval(1) < 0))
 	{
 		printf("Warning: Unable to set VSync! SDL Error: %s\n", SDL_GetError());
 	}

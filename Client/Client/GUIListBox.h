@@ -192,8 +192,6 @@ inline void GUIListBox::Input(int xOffset, int yOffset)
 	if (m_SetToDestroy || !m_Visible) return;
 
 	auto leftButtonState = inputManager.GetMouseButtonLeft();
-	auto middleButtonState = inputManager.GetMouseButtonMiddle();
-	auto rightButtonState = inputManager.GetMouseButtonRight();
 	auto x = m_X + xOffset;
 	auto y = m_Y + yOffset;
 	auto mx = inputManager.GetMouseX();
