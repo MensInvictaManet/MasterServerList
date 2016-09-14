@@ -243,11 +243,11 @@ inline void WindowManager::Render()
 		if (!(*iter).second->m_Minimized)
 		{
 			//  Clear the screen
-			SDL_SetRenderDrawColor((*iter).second->m_Renderer, 0xFF, 0xFF, 0xFF, 0xFF);
-			SDL_RenderClear((*iter).second->m_Renderer);
+			//SDL_SetRenderDrawColor((*iter).second->m_Renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+			//SDL_RenderClear((*iter).second->m_Renderer);
 
 			//  Update the screen
-			SDL_RenderPresent((*iter).second->m_Renderer);
+			//SDL_RenderPresent((*iter).second->m_Renderer);
 			SDL_GL_SwapWindow((*iter).second->m_Window); // TODO: Only do this to the current window?
 		}
 	}
